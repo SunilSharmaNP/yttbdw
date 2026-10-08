@@ -43,24 +43,45 @@ from resolvers import (
     format_size
 )
 
+# --- Safe Fallback Variable Bindings (Prevents AttributeError on Heroku) ---
+API_ID = getattr(config, "API_ID", 0)
+API_HASH = getattr(config, "API_HASH", "")
+BOT_TOKEN = getattr(config, "BOT_TOKEN", "")
+SESSION_STRING = getattr(config, "SESSION_STRING", "")
+OWNER_ID = getattr(config, "OWNER_ID", 2032446867)
+OWNER_USERNAME = getattr(config, "OWNER_USERNAME", "Sunil_Sharma_2_0_Bot")
+UPDATES_CHANNEL = getattr(config, "UPDATES_CHANNEL", "SSBotsUpdates")
+DEALS_CHANNEL = getattr(config, "DEALS_CHANNEL", "Tg_Shoping")
+DEVELOPER_NAME = getattr(config, "DEVELOPER_NAME", "Ꞩᵾꞥīł Ꞩħⱥɍᵯⱥ ƻ.Ꝋ")
+DEVELOPER_URL = getattr(config, "DEVELOPER_URL", "https://t.me/Sunil_Sharma_2_0_Bot")
+CHANNEL_URL = getattr(config, "CHANNEL_URL", "https://t.me/SSBotsUpdates")
+YOUTUBE_URL = getattr(config, "YOUTUBE_URL", "https://www.youtube.com/@SunilWebTricks")
+SUPPORT_CHAT = getattr(config, "SUPPORT_CHAT", "Sunil_Sharma_2_0_Bot")
+LOG_CHANNEL = getattr(config, "LOG_CHANNEL", None)
+DOWNLOAD_DIR = getattr(config, "DOWNLOAD_DIR", "./downloads")
+MAX_FILE_SIZE_MB = getattr(config, "MAX_FILE_SIZE_MB", 2048)
+TERABOX_API_URL = getattr(config, "TERABOX_API_URL", "https://sunil-ssbots.vercel.app/api/terabox")
+DISKWALA_API_URL = getattr(config, "DISKWALA_API_URL", "https://sunil-ssbots.vercel.app/api/diskwala")
+YOUTUBE_API_URL = getattr(config, "YOUTUBE_API_URL", "https://sunil-ssbots.vercel.app/api/youtube")
+
 # In-memory cache for pending YouTube quality selections
 # cache_id -> {title, author, thumbnail, download_links, user_id}
 yt_cache = {}
 
 # Initialize Pyrogram MTProto Client
-if config.SESSION_STRING:
+if SESSION_STRING:
     app = Client(
         name="terabox_session",
-        api_id=config.API_ID,
-        api_hash=config.API_HASH,
-        session_string=config.SESSION_STRING
+        api_id=API_ID,
+        api_hash=API_HASH,
+        session_string=SESSION_STRING
     )
-elif config.BOT_TOKEN:
+elif BOT_TOKEN:
     app = Client(
         name="terabox_bot",
-        api_id=config.API_ID,
-        api_hash=config.API_HASH,
-        bot_token=config.BOT_TOKEN
+        api_id=API_ID,
+        api_hash=API_HASH,
+        bot_token=BOT_TOKEN
     )
 else:
     app = None
@@ -105,8 +126,8 @@ async def check_membership(client: Client, channel_target, user_id: int) -> bool
 
 async def check_fsub(client: Client, user_id: int):
     """Verifies both Updates and Deals channels"""
-    updates_ok = await check_membership(client, config.UPDATES_CHANNEL, user_id)
-    deals_ok = await check_membership(client, config.DEALS_CHANNEL, user_id)
+    updates_ok = await check_membership(client, UPDATES_CHANNEL, user_id)
+    deals_ok = await check_membership(client, DEALS_CHANNEL, user_id)
     is_fully_joined = updates_ok and deals_ok
     return is_fully_joined, updates_ok, deals_ok
 
@@ -160,7 +181,7 @@ async def download_file(url: str, output_path: str, progress_tracker: ProgressTr
             total = int(resp.headers.get("content-length") or 0)
             received = 0
             async with aiofiles.open(output_path, "wb") as f:
-                async for chunk in resp.content.iter_chunked(1024 * 1024):  # 1MB chunks
+                async for chunk in resp.content.iter_chunked(1024 * 1024):
                     await f.write(chunk)
                     received += len(chunk)
                     await progress_tracker.update(received, total)
@@ -177,8 +198,8 @@ if app:
         # 1. Check Dual Force-Sub
         is_joined, _, _ = await check_fsub(client, user_id)
         if not is_joined:
-            updates_link = await get_channel_invite(client, config.UPDATES_CHANNEL)
-            deals_link = await get_channel_invite(client, config.DEALS_CHANNEL)
+            updates_link = await get_channel_invite(client, UPDATES_CHANNEL)
+            deals_link = await get_channel_invite(client, DEALS_CHANNEL)
             buttons = get_fsub_buttons(updates_link, deals_link, user_id)
             await message.reply_text(
                 text=Script.FORCE_SUB_TXT.format(user_name),
@@ -204,8 +225,8 @@ if app:
     async def help_handler(client: Client, message: Message):
         is_joined, _, _ = await check_fsub(client, message.from_user.id)
         if not is_joined:
-            updates_link = await get_channel_invite(client, config.UPDATES_CHANNEL)
-            deals_link = await get_channel_invite(client, config.DEALS_CHANNEL)
+            updates_link = await get_channel_invite(client, UPDATES_CHANNEL)
+            deals_link = await get_channel_invite(client, DEALS_CHANNEL)
             buttons = get_fsub_buttons(updates_link, deals_link, message.from_user.id)
             return await message.reply_text(
                 text=Script.FORCE_SUB_TXT.format(message.from_user.first_name),
@@ -214,7 +235,7 @@ if app:
             )
 
         await message.reply_text(
-            text=Script.HELP_TXT.format(config.SUPPORT_CHAT),
+            text=Script.HELP_TXT.format(SUPPORT_CHAT),
             reply_markup=get_help_buttons(),
             disable_web_page_preview=True,
             parse_mode=enums.ParseMode.HTML
@@ -225,8 +246,8 @@ if app:
     async def about_handler(client: Client, message: Message):
         is_joined, _, _ = await check_fsub(client, message.from_user.id)
         if not is_joined:
-            updates_link = await get_channel_invite(client, config.UPDATES_CHANNEL)
-            deals_link = await get_channel_invite(client, config.DEALS_CHANNEL)
+            updates_link = await get_channel_invite(client, UPDATES_CHANNEL)
+            deals_link = await get_channel_invite(client, DEALS_CHANNEL)
             buttons = get_fsub_buttons(updates_link, deals_link, message.from_user.id)
             return await message.reply_text(
                 text=Script.FORCE_SUB_TXT.format(message.from_user.first_name),
@@ -320,7 +341,7 @@ if app:
                 safe_title = "".join(c for c in title if c.isalnum() or c in "._- ").strip() or "video"
                 ext = "mp3" if itype == "audio" or fmt.lower() == "mp3" else "mp4"
                 file_name = f"{safe_title}_{fmt}.{ext}"
-                tmp_path = os.path.join(config.DOWNLOAD_DIR, f"{int(time.time())}_{file_name}")
+                tmp_path = os.path.join(DOWNLOAD_DIR, f"{int(time.time())}_{file_name}")
 
                 try:
                     await status_msg.edit_text(
@@ -332,7 +353,6 @@ if app:
                     download_tracker = ProgressTracker(status_msg, f"⏬ Downloading: {title} ({fmt})")
                     await download_file(dlink, tmp_path, download_tracker)
 
-                    # Check file size
                     file_size_bytes = os.path.getsize(tmp_path)
                     file_size_human = format_size(file_size_bytes)
 
@@ -345,7 +365,7 @@ if app:
                         file_name=file_name,
                         file_size=file_size_human,
                         provider=f"YouTube ({fmt})",
-                        deals_channel=config.DEALS_CHANNEL
+                        deals_channel=DEALS_CHANNEL
                     )
 
                     if itype == "audio" or ext == "mp3":
@@ -404,7 +424,7 @@ if app:
         elif data == "help":
             try:
                 await query.message.edit_text(
-                    text=Script.HELP_TXT.format(config.SUPPORT_CHAT),
+                    text=Script.HELP_TXT.format(SUPPORT_CHAT),
                     reply_markup=get_help_buttons(),
                     disable_web_page_preview=True,
                     parse_mode=enums.ParseMode.HTML
@@ -438,8 +458,8 @@ if app:
         # 1. Enforce Force-Sub on link processing
         is_joined, _, _ = await check_fsub(client, user_id)
         if not is_joined:
-            updates_link = await get_channel_invite(client, config.UPDATES_CHANNEL)
-            deals_link = await get_channel_invite(client, config.DEALS_CHANNEL)
+            updates_link = await get_channel_invite(client, UPDATES_CHANNEL)
+            deals_link = await get_channel_invite(client, DEALS_CHANNEL)
             buttons = get_fsub_buttons(updates_link, deals_link, user_id)
             return await message.reply_text(
                 text=Script.FORCE_SUB_TXT.format(user_name),
@@ -511,16 +531,16 @@ if app:
 
                 # Check max size limit
                 size_mb = (info.get("size_bytes") or 0) / (1024 * 1024)
-                if size_mb > config.MAX_FILE_SIZE_MB:
+                if size_mb > MAX_FILE_SIZE_MB:
                     await status_msg.edit_text(
                         f"⚠️ <b>File exceeds limit:</b> {file_name} ({file_size})\n"
-                        f"Maximum upload limit is {config.MAX_FILE_SIZE_MB} MB.\n\n"
+                        f"Maximum upload limit is {MAX_FILE_SIZE_MB} MB.\n\n"
                         f"🔗 <b>Direct Link:</b> <a href='{dlink}'>Click to Download</a>"
                     )
                     continue
 
                 safe_name = "".join(c for c in file_name if c.isalnum() or c in "._- ").strip() or "file.mp4"
-                tmp_path = os.path.join(config.DOWNLOAD_DIR, f"{int(time.time())}_{safe_name}")
+                tmp_path = os.path.join(DOWNLOAD_DIR, f"{int(time.time())}_{safe_name}")
 
                 download_tracker = ProgressTracker(status_msg, f"⏬ Downloading: {file_name} ({file_size})")
                 await download_file(dlink, tmp_path, download_tracker)
@@ -534,7 +554,7 @@ if app:
                     file_name=file_name,
                     file_size=file_size,
                     provider=info["provider"],
-                    deals_channel=config.DEALS_CHANNEL
+                    deals_channel=DEALS_CHANNEL
                 )
 
                 ext = file_name.split(".")[-1].lower() if "." in file_name else ""
@@ -578,21 +598,21 @@ if app:
 
 async def send_deploy_log(client: Client):
     """Sends deployment status notification to log channel if configured."""
-    if not config.LOG_CHANNEL:
+    if not LOG_CHANNEL:
         return
     try:
         log_text = (
             "🚀 <b>TeraBox, Diskwala & YouTube Bot Deployed!</b>\n\n"
-            f"👤 <b>Developer:</b> <a href='{config.DEVELOPER_URL}'>{config.DEVELOPER_NAME}</a>\n"
-            f"📢 <b>Updates:</b> <a href='{config.CHANNEL_URL}'>@SSBotsUpdates</a>\n"
-            f"📺 <b>YouTube:</b> <a href='{config.YOUTUBE_URL}'>SunilWebTricks</a>\n"
-            f"🛍️ <b>Deals:</b> @{config.DEALS_CHANNEL}\n"
+            f"👤 <b>Developer:</b> <a href='{DEVELOPER_URL}'>{DEVELOPER_NAME}</a>\n"
+            f"📢 <b>Updates:</b> <a href='{CHANNEL_URL}'>@SSBotsUpdates</a>\n"
+            f"📺 <b>YouTube:</b> <a href='{YOUTUBE_URL}'>SunilWebTricks</a>\n"
+            f"🛍️ <b>Deals:</b> @{DEALS_CHANNEL}\n"
             f"🕒 <b>Deployed At:</b> {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}\n"
             "⚡ <b>Engine:</b> Pyrogram MTProto (2GB File Upload Ready)\n"
             "🌐 <b>API Engine:</b> Sunil-SSBots API"
         )
         await client.send_message(
-            chat_id=config.LOG_CHANNEL,
+            chat_id=LOG_CHANNEL,
             text=log_text,
             disable_web_page_preview=True,
             parse_mode=enums.ParseMode.HTML
@@ -608,13 +628,13 @@ def run():
     deploy_banner = (
         "====================================================================\n"
         f"🚀 TERA BOX, DISKWALA & YOUTUBE BOT DEPLOYED SUCCESSFULLY!\n"
-        f"👤 Developer / Owner: {config.DEVELOPER_NAME} ({config.DEVELOPER_URL})\n"
-        f"📢 Telegram Channel : {config.CHANNEL_URL} (@{config.UPDATES_CHANNEL})\n"
-        f"📺 YouTube Channel  : {config.YOUTUBE_URL} (SunilWebTricks)\n"
-        f"💬 Ask Doubt/Support: @{config.SUPPORT_CHAT}\n"
-        f"🌐 TeraBox API     : {config.TERABOX_API_URL}\n"
-        f"🌐 Diskwala API    : {config.DISKWALA_API_URL}\n"
-        f"🌐 YouTube API     : {config.YOUTUBE_API_URL}\n"
+        f"👤 Developer / Owner: {DEVELOPER_NAME} ({DEVELOPER_URL})\n"
+        f"📢 Telegram Channel : {CHANNEL_URL} (@{UPDATES_CHANNEL})\n"
+        f"📺 YouTube Channel  : {YOUTUBE_URL} (SunilWebTricks)\n"
+        f"💬 Ask Doubt/Support: @{SUPPORT_CHAT}\n"
+        f"🌐 TeraBox API     : {TERABOX_API_URL}\n"
+        f"🌐 Diskwala API    : {DISKWALA_API_URL}\n"
+        f"🌐 YouTube API     : {YOUTUBE_API_URL}\n"
         "===================================================================="
     )
     print(deploy_banner)
