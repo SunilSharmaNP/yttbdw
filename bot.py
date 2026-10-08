@@ -7,9 +7,10 @@
 # ==============================================================================
 
 """
-Main Executable Entry Point for TeraBox & Diskwala Downloader Bot.
+Main Executable Entry Point for TeraBox, Diskwala & YouTube Downloader Bot.
 Dual Channel Force-Subscription Verification (Updates + Deals Channel)
 High-Speed Chunked Download & 2GB Telegram MTProto Upload
+Powered by Sunil-SSBots Custom Engine (https://sunil-ssbots.vercel.app)
 """
 
 import os
@@ -25,8 +26,26 @@ from pyrogram.errors import UserNotParticipant, FloodWait
 from pyrogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 
 import config
-from translations import Script, get_start_buttons, get_help_buttons, get_about_buttons, get_fsub_buttons
-from resolvers import extract_urls, detect_link_type, resolve_terabox, resolve_diskwala, format_size
+from translations import (
+    Script,
+    get_start_buttons,
+    get_help_buttons,
+    get_about_buttons,
+    get_fsub_buttons,
+    get_youtube_quality_buttons
+)
+from resolvers import (
+    extract_urls,
+    detect_link_type,
+    resolve_terabox,
+    resolve_diskwala,
+    resolve_youtube,
+    format_size
+)
+
+# In-memory cache for pending YouTube quality selections
+# cache_id -> {title, author, thumbnail, download_links, user_id}
+yt_cache = {}
 
 # Initialize Pyrogram MTProto Client
 if config.SESSION_STRING:
@@ -132,16 +151,16 @@ class ProgressTracker:
             pass
 
 async def download_file(url: str, output_path: str, progress_tracker: ProgressTracker):
-    headers = {"User-Agent": "Mozilla/5.0"}
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
     timeout = aiohttp.ClientTimeout(total=3600)
     async with aiohttp.ClientSession(headers=headers, timeout=timeout) as session:
         async with session.get(url) as resp:
             if resp.status not in (200, 206):
-                raise Exception(f"Download HTTP {resp.status}")
+                raise Exception(f"Download HTTP error {resp.status}")
             total = int(resp.headers.get("content-length") or 0)
             received = 0
             async with aiofiles.open(output_path, "wb") as f:
-                async for chunk in resp.content.iter_chunked(1024 * 1024):
+                async for chunk in resp.content.iter_chunked(1024 * 1024):  # 1MB chunks
                     await f.write(chunk)
                     received += len(chunk)
                     await progress_tracker.update(received, total)
@@ -174,7 +193,7 @@ if app:
         bot_username = bot_info.username or "Bot"
         buttons = get_start_buttons(bot_username)
         await message.reply_text(
-            text=Script.START_TXT.format(user_name, config.UPDATES_CHANNEL),
+            text=Script.START_TXT.format(user_name),
             reply_markup=buttons,
             disable_web_page_preview=True,
             parse_mode=enums.ParseMode.HTML
@@ -217,7 +236,7 @@ if app:
 
         bot_info = getattr(client, "me", None) or await client.get_me()
         bot_username = bot_info.username or "Bot"
-        bot_name = bot_info.first_name or "TeraBox Downloader"
+        bot_name = bot_info.first_name or "Media Downloader"
         await message.reply_text(
             text=Script.ABOUT_TXT.format(bot_username, bot_name),
             reply_markup=get_about_buttons(),
@@ -228,9 +247,9 @@ if app:
     # --- Command: /ping ---
     @app.on_message(filters.command("ping") & filters.private)
     async def ping_handler(client: Client, message: Message):
-        await message.reply_text("🏓 <b>Pong!</b> Pyrogram MTProto Bot is Online & Active.")
+        await message.reply_text("🏓 <b>Pong!</b> TeraBox, Diskwala & YouTube Downloader Bot is Online.")
 
-    # --- Callback Queries: Navigation & Force-Sub Verification ---
+    # --- Callback Queries: Navigation, Force-Sub Verification & YouTube Qualities ---
     @app.on_callback_query()
     async def callback_dispatcher(client: Client, query: CallbackQuery):
         data = query.data
@@ -238,9 +257,9 @@ if app:
         user_name = (query.from_user.first_name or "User").replace("<", "&lt;").replace(">", "&gt;")
         bot_info = getattr(client, "me", None) or await client.get_me()
         bot_username = bot_info.username or "Bot"
-        bot_name = bot_info.first_name or "TeraBox Downloader"
+        bot_name = bot_info.first_name or "Media Downloader"
 
-        # Verification Callback
+        # 1. Verification Callback
         if data.startswith("verify_"):
             try:
                 target_uid = int(data.split("_")[1])
@@ -265,7 +284,7 @@ if app:
             await query.answer("✅ Verification Successful! Welcome to the bot.", show_alert=True)
             try:
                 await query.message.edit_text(
-                    text=Script.START_TXT.format(user_name, config.UPDATES_CHANNEL),
+                    text=Script.START_TXT.format(user_name),
                     reply_markup=get_start_buttons(bot_username),
                     disable_web_page_preview=True,
                     parse_mode=enums.ParseMode.HTML
@@ -274,11 +293,107 @@ if app:
                 pass
             return
 
-        # Menu Navigation
+        # 2. YouTube Quality Download Callback (ytq_{cache_id}_{idx})
+        if data.startswith("ytq_"):
+            parts = data.split("_")
+            if len(parts) >= 3:
+                cache_id = parts[1]
+                idx = int(parts[2])
+
+                cached = yt_cache.get(cache_id)
+                if not cached:
+                    return await query.answer("⚠️ Session Expired! Please re-send the YouTube link.", show_alert=True)
+
+                download_links = cached.get("download_links", [])
+                if idx >= len(download_links):
+                    return await query.answer("⚠️ Invalid Quality selection.", show_alert=True)
+
+                selected = download_links[idx]
+                dlink = selected.get("downloadUrl")
+                fmt = selected.get("format") or selected.get("label") or "best"
+                itype = selected.get("type") or "video"
+                title = cached.get("title") or "YouTube_Video"
+
+                await query.answer(f"⏳ Downloading {fmt}...", show_alert=False)
+
+                status_msg = query.message
+                safe_title = "".join(c for c in title if c.isalnum() or c in "._- ").strip() or "video"
+                ext = "mp3" if itype == "audio" or fmt.lower() == "mp3" else "mp4"
+                file_name = f"{safe_title}_{fmt}.{ext}"
+                tmp_path = os.path.join(config.DOWNLOAD_DIR, f"{int(time.time())}_{file_name}")
+
+                try:
+                    await status_msg.edit_text(
+                        f"⏬ <b>Starting Download:</b> <code>{title}</code>\n"
+                        f"📦 <b>Quality:</b> <code>{fmt}</code>\n"
+                        f"<blockquote>⚡ <i>Connecting to high-speed stream...</i></blockquote>"
+                    )
+
+                    download_tracker = ProgressTracker(status_msg, f"⏬ Downloading: {title} ({fmt})")
+                    await download_file(dlink, tmp_path, download_tracker)
+
+                    # Check file size
+                    file_size_bytes = os.path.getsize(tmp_path)
+                    file_size_human = format_size(file_size_bytes)
+
+                    upload_tracker = ProgressTracker(status_msg, f"📤 Uploading to Telegram via MTProto: {title}")
+
+                    async def upload_progress(current, total):
+                        await upload_tracker.update(current, total)
+
+                    caption = Script.CAPTION_TXT.format(
+                        file_name=file_name,
+                        file_size=file_size_human,
+                        provider=f"YouTube ({fmt})",
+                        deals_channel=config.DEALS_CHANNEL
+                    )
+
+                    if itype == "audio" or ext == "mp3":
+                        await client.send_audio(
+                            chat_id=query.message.chat.id,
+                            audio=tmp_path,
+                            caption=caption,
+                            title=title,
+                            performer=cached.get("author") or "YouTube",
+                            progress=upload_progress
+                        )
+                    else:
+                        try:
+                            await client.send_video(
+                                chat_id=query.message.chat.id,
+                                video=tmp_path,
+                                caption=caption,
+                                supports_streaming=True,
+                                progress=upload_progress
+                            )
+                        except Exception:
+                            await client.send_document(
+                                chat_id=query.message.chat.id,
+                                document=tmp_path,
+                                caption=caption,
+                                progress=upload_progress
+                            )
+
+                    await status_msg.delete()
+
+                except Exception as e:
+                    await status_msg.edit_text(
+                        f"❌ <b>Download Error:</b> <code>{str(e)}</code>\n\n"
+                        f"🔗 <b>Direct Link:</b> <a href='{dlink}'>Click to Download Manually</a>"
+                    )
+                finally:
+                    if tmp_path and os.path.exists(tmp_path):
+                        try:
+                            os.remove(tmp_path)
+                        except Exception:
+                            pass
+            return
+
+        # 3. Menu Navigation
         if data == "home":
             try:
                 await query.message.edit_text(
-                    text=Script.START_TXT.format(user_name, config.UPDATES_CHANNEL),
+                    text=Script.START_TXT.format(user_name),
                     reply_markup=get_start_buttons(bot_username),
                     disable_web_page_preview=True,
                     parse_mode=enums.ParseMode.HTML
@@ -314,7 +429,7 @@ if app:
             except Exception:
                 pass
 
-    # --- Message Handler: Auto Link Detection & 2GB MTProto Upload ---
+    # --- Message Handler: TeraBox, Diskwala & YouTube Link Processing ---
     @app.on_message(filters.text & filters.private & ~filters.command(["start", "help", "about", "ping"]))
     async def text_link_handler(client: Client, message: Message):
         user_id = message.from_user.id
@@ -342,7 +457,43 @@ if app:
             if not link_type:
                 continue
 
-            status_msg = await message.reply_text(f"🔍 <i>Detecting & resolving {link_type.upper()} link...</i>")
+            # --- CASE A: YouTube Video Link ---
+            if link_type == "youtube":
+                status_msg = await message.reply_text(
+                    Script.YT_WAIT_TXT,
+                    parse_mode=enums.ParseMode.HTML
+                )
+                try:
+                    yt_info = await resolve_youtube(url)
+                    cache_id = f"yt_{int(time.time())}_{user_id}"
+                    yt_cache[cache_id] = {
+                        "title": yt_info["title"],
+                        "author": yt_info["author"],
+                        "thumbnail": yt_info.get("thumbnail"),
+                        "download_links": yt_info["download_links"],
+                        "user_id": user_id
+                    }
+
+                    buttons = get_youtube_quality_buttons(cache_id, yt_info["download_links"])
+                    info_text = Script.YT_INFO_TXT.format(
+                        title=yt_info["title"],
+                        author=yt_info["author"]
+                    )
+                    await status_msg.edit_text(
+                        text=info_text,
+                        reply_markup=buttons,
+                        parse_mode=enums.ParseMode.HTML,
+                        disable_web_page_preview=True
+                    )
+                except Exception as e:
+                    await status_msg.edit_text(
+                        f"❌ <b>YouTube Extraction Failed:</b>\n<code>{str(e)}</code>\n\n"
+                        "Tip: Verify the YouTube link is publicly available."
+                    )
+                continue
+
+            # --- CASE B: TeraBox & Diskwala Direct Resolvers ---
+            status_msg = await message.reply_text(f"🔍 <i>Detecting & resolving {link_type.upper()} link via Sunil-SSBots API...</i>")
             tmp_path = None
 
             try:
@@ -431,13 +582,14 @@ async def send_deploy_log(client: Client):
         return
     try:
         log_text = (
-            "🚀 <b>TeraBox & Diskwala Bot Deployed!</b>\n\n"
+            "🚀 <b>TeraBox, Diskwala & YouTube Bot Deployed!</b>\n\n"
             f"👤 <b>Developer:</b> <a href='{config.DEVELOPER_URL}'>{config.DEVELOPER_NAME}</a>\n"
             f"📢 <b>Updates:</b> <a href='{config.CHANNEL_URL}'>@SSBotsUpdates</a>\n"
             f"📺 <b>YouTube:</b> <a href='{config.YOUTUBE_URL}'>SunilWebTricks</a>\n"
             f"🛍️ <b>Deals:</b> @{config.DEALS_CHANNEL}\n"
             f"🕒 <b>Deployed At:</b> {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}\n"
-            "⚡ <b>Engine:</b> Pyrogram MTProto (2GB File Upload Ready)"
+            "⚡ <b>Engine:</b> Pyrogram MTProto (2GB File Upload Ready)\n"
+            "🌐 <b>API Engine:</b> Sunil-SSBots API"
         )
         await client.send_message(
             chat_id=config.LOG_CHANNEL,
@@ -455,24 +607,15 @@ def run():
 
     deploy_banner = (
         "====================================================================\n"
-        f"🚀 TERA BOX & DISKWALA PYROGRAM BOT DEPLOYED SUCCESSFULLY!\n"
+        f"🚀 TERA BOX, DISKWALA & YOUTUBE BOT DEPLOYED SUCCESSFULLY!\n"
         f"👤 Developer / Owner: {config.DEVELOPER_NAME} ({config.DEVELOPER_URL})\n"
         f"📢 Telegram Channel : {config.CHANNEL_URL} (@{config.UPDATES_CHANNEL})\n"
         f"📺 YouTube Channel  : {config.YOUTUBE_URL} (SunilWebTricks)\n"
         f"💬 Ask Doubt/Support: @{config.SUPPORT_CHAT}\n"
+        f"🌐 API Engine       : {config.TERABOX_API_URL}\n"
         "===================================================================="
     )
     print(deploy_banner)
-
-    async def main_startup():
-        async with app:
-            me = await app.get_me()
-            print(f"🤖 Bot Online as @{me.username} ({me.first_name})")
-            await send_deploy_log(app)
-            print("⚡ Bot is listening for updates...")
-            # Keep running
-            while True:
-                await asyncio.sleep(3600)
 
     try:
         app.run()
