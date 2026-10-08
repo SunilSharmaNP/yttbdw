@@ -8,16 +8,17 @@
 ==============================================================================
 -->
 
-# 🚀 TeraBox & Diskwala Downloader Bot (Pyrogram MTProto)
+# 🚀 TeraBox, Diskwala & YouTube Downloader Bot (Pyrogram MTProto)
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python 3.11+">
   <img src="https://img.shields.io/badge/Framework-Pyrogram%20MTProto-purple.svg" alt="Pyrogram">
   <img src="https://img.shields.io/badge/Upload%20Cap-2%20GB%20MTProto-success.svg" alt="2GB Uploads">
+  <img src="https://img.shields.io/badge/API-Sunil--SSBots%20Vercel%20Engine-cyan.svg" alt="API Engine">
   <img src="https://img.shields.io/badge/Developer-Ꞩᵾꞥīł%20Ꞩħⱥɍᵯⱥ%20ƻ.Ꝋ-orange.svg" alt="Developer">
 </p>
 
-An ultra-fast, professional Telegram Bot built with **Python & Pyrogram (MTProto)**. It automatically detects **TeraBox** and **Diskwala** share links, verifies dual-channel force-subscription, downloads media in fast streaming chunks with a live progress bar, and natively uploads up to **2 GB (and 4 GB for Premium)** directly to Telegram!
+An ultra-fast, professional Telegram Bot built with **Python & Pyrogram (MTProto)** and powered by **Sunil-SSBots High-Speed API Engine** (`https://sunil-ssbots.vercel.app`).
 
 ---
 
@@ -30,28 +31,30 @@ An ultra-fast, professional Telegram Bot built with **Python & Pyrogram (MTProto
 | **🛍️ Loot Deals Channel** | [@Tg_Shoping](https://t.me/Tg_Shoping) |
 | **📺 YouTube Channel** | [SunilWebTricks (@SunilWebTricks)](https://www.youtube.com/@SunilWebTricks) |
 | **💬 Ask Doubt / Support** | [@Sunil_Sharma_2_0_Bot](https://t.me/Sunil_Sharma_2_0_Bot) |
+| **🌐 API Engine** | [sunil-ssbots.vercel.app](https://sunil-ssbots.vercel.app) |
 
 ---
 
-## ✨ Features
+## ✨ Features & Architecture
 
+- 🌐 **Sunil-SSBots Custom TeraBox API Integration:**
+  - Uses `https://sunil-ssbots.vercel.app/api/terabox?url={url}` for high-speed direct download links (DDL) and streaming URLs.
+  - Supports all 20+ TeraBox mirrors (`teraboxlink.com`, `terabox.com`, `terabox.app`, `1024terabox.com`, etc.).
+- 📺 **Interactive YouTube Video & Audio Downloader:**
+  - Uses `https://sunil-ssbots.vercel.app/api/youtube?url={url}` to fetch candidate formats.
+  - Informs the user to wait a few seconds while qualities are generated.
+  - Displays inline quality selection buttons:
+    - 🎬 **Video:** `1080p`, `720p`, `480p`, `360p`
+    - 🎵 **Audio:** `MP3 (High Quality)`, `M4A (AAC)`
+  - Downloads the selected quality and delivers it directly to Telegram!
+- 🎬 **Diskwala Video Stream Resolver:**
+  - Auto-resolves Diskwala share URLs into streamable video files.
 - 🔐 **Dual-Channel Force Subscribe Verification:**
   - Enforces mandatory subscription to **Updates Channel** (`@SSBotsUpdates`) and **Loot Deals Channel** (`@Tg_Shoping`).
-  - Interactive verification popup alert with instant join buttons.
-- 🎨 **Professional Stylish Typography & Menus:**
-  - Custom font templates for `/start`, `/help`, and `/about`.
-  - In-place callback query navigation without chat spam.
-- ⚡ **Auto Link Detection & High-Speed Resolvers:**
-  - Supports all 20+ TeraBox mirrors (`terabox.com`, `terabox.app`, `1024terabox.com`, `freeterabox.com`, `mirrobox.com`, `tibibox.com`, etc.).
-  - Supports Diskwala links (`diskwala.com`, `diskwala.app`, etc.).
-- 📦 **2GB Native MTProto Uploads:**
-  - Bypasses traditional 50MB Bot API caps using Pyrogram MTProto client.
-  - Video streaming support (`send_video` with fast streaming metadata).
-- 📊 **Real-Time Progress Bars:**
-  - Live download speed, elapsed time, and ETA (`[▰▰▰▰▱▱▱▱] 45.2% ⚡ 22.4 MB/s`).
-  - Live upload progress tracking.
-- 🧹 **Automatic Cleanup:**
-  - Temporary files are immediately removed from disk after successful delivery.
+  - Interactive popup verification alert.
+- 📦 **2GB Native MTProto Telegram Uploads:**
+  - Real-time download & upload progress bars with speed in MB/s (`[▰▰▰▰▱▱▱▱] 45.2% ⚡ 22.4 MB/s`).
+  - Native video streaming headers.
 
 ---
 
@@ -77,7 +80,7 @@ An ultra-fast, professional Telegram Bot built with **Python & Pyrogram (MTProto
 heroku login
 
 # Create App
-heroku create terabox-diskwala-bot
+heroku create terabox-diskwala-youtube-bot
 
 # Set Config Vars
 heroku config:set API_ID="1234567"
@@ -103,9 +106,9 @@ heroku logs --tail
 ## 📂 Repository File Map
 
 ```
-├── bot.py             # Main Pyrogram MTProto Bot (Dual F-Sub + Downloader + 2GB Uploader)
-├── translations.py    # Stylish Typography, Inline Keyboards & Scripts
-├── resolvers.py       # Async TeraBox & Diskwala Link Resolvers
+├── bot.py             # Main Pyrogram MTProto Bot (TeraBox + Diskwala + YouTube + Dual F-Sub + 2GB Upload)
+├── translations.py    # Stylish Typography, Inline Keyboards & YouTube Quality Buttons
+├── resolvers.py       # Async Sunil-SSBots TeraBox, YouTube & Diskwala Resolvers
 ├── config.py          # Central Environment Configuration
 ├── requirements.txt   # Python Dependencies (pyrogram, tgcrypto, aiohttp, aiofiles)
 ├── Procfile           # Heroku Process File (worker: python3 bot.py)
