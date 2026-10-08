@@ -1,1 +1,16 @@
+# Secrets & Config
+.env
+data/
+*.session
+*.session-journal
 
+# Downloads & Temp
+downloads/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Node / Web artifacts
+node_modules/
+dist/
+bun.lock
