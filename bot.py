@@ -15,6 +15,12 @@ Powered by Sunil-SSBots Custom Engine (https://sunil-ssbots.vercel.app)
 
 import os
 import sys
+
+# Ensure local directory is prioritized in sys.path
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
+
 import time
 import asyncio
 from datetime import datetime
