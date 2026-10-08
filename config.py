@@ -6,47 +6,37 @@
 # 💬 Ask Doubt / Contact   : @Sunil_Sharma_2_0_Bot
 # ==============================================================================
 
-import os
-from dotenv import load_dotenv
+# --- Telegram Credentials (from https://my.telegram.org) ---
+API_ID="1234567"
+API_HASH="abcdef0123456789abcdef0123456789"
 
-load_dotenv()
+# --- Telegram Bot Token (from @BotFather) ---
+BOT_TOKEN="123456789:ABCdefGhIjkLmNoPqRsTuVwXyZ"
 
-# --- Developer & Branding Info ---
-DEVELOPER_NAME = "Ꞩᵾꞥīł Ꞩħⱥɍᵯⱥ ƻ.Ꝋ"
-DEVELOPER_URL = "https://t.me/Sunil_Sharma_2_0_Bot"
-CHANNEL_URL = "https://t.me/SSBotsUpdates"
-YOUTUBE_URL = "https://www.youtube.com/@SunilWebTricks"
-SUPPORT_CHAT = "Sunil_Sharma_2_0_Bot"
+# --- Bot Owner Info ---
+OWNER_USERNAME="Sunil_Sharma_2_0_Bot"
+OWNER_ID="2032446867"
 
-# --- Telegram Credentials ---
-API_ID = int(os.getenv("API_ID", "0") or "0")
-API_HASH = os.getenv("API_HASH", "")
-BOT_TOKEN = os.getenv("BOT_TOKEN", "")
-SESSION_STRING = os.getenv("SESSION_STRING", "")
+# --- Mandatory 2 Force Subscribe Channels (without @ or -100 ID) ---
+UPDATES_CHANNEL="SSBotsUpdates"
+DEALS_CHANNEL="Tg_Shoping"
 
-# --- Owner Info ---
-OWNER_ID = int(os.getenv("OWNER_ID", "2032446867") or "2032446867")
-OWNER_USERNAME = os.getenv("OWNER_USERNAME", "Sunil_Sharma_2_0_Bot").lstrip("@")
+# --- Optional Log Channel ID (e.g. -100xxxxxxxxxx) ---
+LOG_CHANNEL=""
 
-# --- Mandatory 2 Force Subscribe Channels ---
-UPDATES_CHANNEL = os.getenv("UPDATES_CHANNEL", "SSBotsUpdates").lstrip("@")
-DEALS_CHANNEL = os.getenv("DEALS_CHANNEL", "Tg_Shoping").lstrip("@")
+# --- Sunil-SSBots API Engine Endpoints (https://sunil-ssbots.vercel.app) ---
+TERABOX_API_URL="https://sunil-ssbots.vercel.app/api/terabox"
+DISKWALA_API_URL="https://sunil-ssbots.vercel.app/api/diskwala"
+YOUTUBE_API_URL="https://sunil-ssbots.vercel.app/api/youtube"
 
-# --- Optional Log Channel ---
-LOG_CHANNEL = os.getenv("LOG_CHANNEL", "")
-try:
-    LOG_CHANNEL = int(LOG_CHANNEL) if LOG_CHANNEL else None
-except ValueError:
-    LOG_CHANNEL = None
+# --- (Optional) Pyrogram String Session if using a User Account ---
+SESSION_STRING=""
 
-# --- Custom High-Speed API Endpoints (Sunil-SSBots Engine) ---
-TERABOX_API_URL = os.getenv("TERABOX_API_URL", "https://sunil-ssbots.vercel.app/api/terabox")
-YOUTUBE_API_URL = os.getenv("YOUTUBE_API_URL", "https://sunil-ssbots.vercel.app/api/youtube")
-DISKWALA_RESOLVER_URL = os.getenv("DISKWALA_RESOLVER_URL", "https://diskwala-dl-six.vercel.app/api/scrap")
+# --- (Optional) TeraBox session cookies (ndus=...) ---
+TERABOX_COOKIES=""
 
-# --- Download & Upload Settings ---
-DOWNLOAD_DIR = os.getenv("DOWNLOAD_DIR", "./downloads")
-os.makedirs(DOWNLOAD_DIR, exist_ok=True)
+# --- Max File Size in MB (2048 MB = 2 GB standard MTProto) ---
+MAX_FILE_SIZE_MB="2048"
 
-# 2GB upload limit (standard MTProto)
-MAX_FILE_SIZE_MB = int(os.getenv("MAX_FILE_SIZE_MB", "2048"))
+# --- Temp Download Directory ---
+DOWNLOAD_DIR="./downloads"
