@@ -1,1 +1,58 @@
+{
+  "name": "TeraBox & Diskwala Pyrogram Downloader Bot",
+  "description": "Telegram bot using Pyrogram MTProto to auto-detect TeraBox and Diskwala links, download media, verify dual channel subscriptions, and upload up to 2GB to Telegram.",
+  "repository": "https://github.com",
+  "keywords": ["telegram", "pyrogram", "terabox", "diskwala", "mtproto", "downloader", "bot", "forcesub"],
+  "stack": "container",
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ],
+  "env": {
+    "API_ID": {
+      "description": "Telegram API_ID from https://my.telegram.org",
+      "required": true
+    },
+    "API_HASH": {
+      "description": "Telegram API_HASH from https://my.telegram.org",
+      "required": true
+    },
+    "BOT_TOKEN": {
+      "description": "Telegram Bot Token from @BotFather",
+      "required": true
+    },
+    "OWNER_USERNAME": {
+      "description": "Bot Owner Username (without @)",
+      "required": false,
+      "value": "Sunil_Sharma_2_0"
+    },
+    "UPDATES_CHANNEL": {
+      "description": "1st Force Sub Channel: Updates Channel (without @)",
+      "required": false,
+      "value": "SSBotsUpdates"
+    },
+    "DEALS_CHANNEL": {
+      "description": "2nd Force Sub Channel: Loot Deals Channel (without @)",
+      "required": false,
+      "value": "Tg_Shoping"
+    },
+    "TERABOX_COOKIES": {
+      "description": "(Optional) TeraBox session cookies (ndus=...)",
+      "required": false,
+      "value": ""
+    },
+    "MAX_FILE_SIZE_MB": {
+      "description": "Max file size to download & upload in MB (2048 = 2GB)",
+      "required": false,
+      "value": "2048"
+    }
+  },
+  "formation": {
+    "worker": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  }
+}
 
