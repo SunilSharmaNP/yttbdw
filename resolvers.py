@@ -11,6 +11,10 @@ import aiohttp
 from urllib.parse import urlparse, quote, parse_qs
 import config
 
+TERABOX_API_URL = getattr(config, "TERABOX_API_URL", "https://sunil-ssbots.vercel.app/api/terabox")
+DISKWALA_API_URL = getattr(config, "DISKWALA_API_URL", "https://sunil-ssbots.vercel.app/api/diskwala")
+YOUTUBE_API_URL = getattr(config, "YOUTUBE_API_URL", "https://sunil-ssbots.vercel.app/api/youtube")
+
 TERABOX_HOSTS = {
     "terabox.com", "www.terabox.com", "terabox.app", "www.terabox.app",
     "teraboxapp.com", "www.teraboxapp.com", "1024terabox.com", "www.1024terabox.com",
@@ -42,11 +46,9 @@ def normalize_diskwala_url(input_url: str) -> str:
     """Normalizes any Diskwala URL into https://www.diskwala.com/app/<id>"""
     try:
         u = urlparse(input_url.strip())
-        # Check path regex: /app/<id>, /s/<id>, /view/<id>, /share/<id>
         m = re.search(r'/(?:app|s|view|share|w|d)/([a-zA-Z0-9]+)', u.path)
         if m:
             return f"https://www.diskwala.com/app/{m.group(1)}"
-        # Check query param: ?id=<id>
         qs = parse_qs(u.query)
         if "id" in qs and qs["id"]:
             return f"https://www.diskwala.com/app/{qs['id'][0]}"
@@ -75,10 +77,9 @@ def extract_urls(text: str):
 # --- 1. TeraBox High-Speed API Resolver (sunil-ssbots engine) ---
 async def resolve_terabox(url: str):
     headers = {"User-Agent": UA, "Accept": "application/json"}
-    endpoint = f"{config.TERABOX_API_URL}?url={quote(url, safe='')}"
+    endpoint = f"{TERABOX_API_URL}?url={quote(url, safe='')}"
     
     async with aiohttp.ClientSession(headers=headers) as session:
-        # Call custom sunil-ssbots TeraBox API (timeout 45s)
         try:
             async with session.get(endpoint, timeout=aiohttp.ClientTimeout(total=45)) as resp:
                 if resp.status == 200:
@@ -148,9 +149,8 @@ async def resolve_terabox(url: str):
 # --- 2. YouTube Video & Audio API Resolver (sunil-ssbots engine) ---
 async def resolve_youtube(url: str):
     headers = {"User-Agent": UA, "Accept": "application/json"}
-    endpoint = f"{config.YOUTUBE_API_URL}?url={quote(url, safe='')}"
+    endpoint = f"{YOUTUBE_API_URL}?url={quote(url, safe='')}"
     
-    # YouTube API takes 40-60 seconds to resolve all qualities
     async with aiohttp.ClientSession(headers=headers) as session:
         async with session.get(endpoint, timeout=aiohttp.ClientTimeout(total=90)) as resp:
             if resp.status != 200:
@@ -180,9 +180,7 @@ async def resolve_youtube(url: str):
 async def resolve_diskwala(url: str):
     headers = {"User-Agent": UA, "Accept": "application/json"}
     normalized_url = normalize_diskwala_url(url)
-    
-    # 1. Primary call: sunil-ssbots Vercel API
-    endpoint = f"{config.DISKWALA_API_URL}?url={quote(normalized_url, safe='')}"
+    endpoint = f"{DISKWALA_API_URL}?url={quote(normalized_url, safe='')}"
     
     async with aiohttp.ClientSession(headers=headers) as session:
         try:
@@ -204,7 +202,7 @@ async def resolve_diskwala(url: str):
         except Exception as e:
             print(f"[DISKWALA API NOTE] Primary API error: {e}")
 
-        # 2. Direct Fallback: thediskwala upstream resolver
+        # Fallback 1: thediskwala upstream resolver
         try:
             upstream_url = f"https://thediskwala.com/api/diskwala-free?url={quote(normalized_url, safe='')}"
             async with session.get(upstream_url, timeout=aiohttp.ClientTimeout(total=20)) as resp:
@@ -225,7 +223,7 @@ async def resolve_diskwala(url: str):
         except Exception:
             pass
 
-        # 3. Direct HTML Parser Fallback
+        # Fallback 2: Direct HTML Parser Fallback
         try:
             async with session.get(url, headers={"User-Agent": UA, "Accept": "text/html"}, timeout=aiohttp.ClientTimeout(total=20)) as resp:
                 if resp.status == 200:
