@@ -8,7 +8,7 @@
 
 import re
 import aiohttp
-from urllib.parse import urlparse, quote
+from urllib.parse import urlparse, quote, parse_qs
 import config
 
 TERABOX_HOSTS = {
@@ -20,7 +20,7 @@ TERABOX_HOSTS = {
 
 DISKWALA_HOSTS = {
     "diskwala.com", "www.diskwala.com", "diskwala.net", "www.diskwala.net",
-    "diskwala.app", "www.diskwala.app"
+    "diskwala.app", "www.diskwala.app", "thediskwala.com", "www.thediskwala.com"
 }
 
 YOUTUBE_HOSTS = {
@@ -37,6 +37,22 @@ def format_size(bytes_num):
             return f"{n:.2f} {unit}"
         n /= 1024.0
     return f"{n:.2f} PB"
+
+def normalize_diskwala_url(input_url: str) -> str:
+    """Normalizes any Diskwala URL into https://www.diskwala.com/app/<id>"""
+    try:
+        u = urlparse(input_url.strip())
+        # Check path regex: /app/<id>, /s/<id>, /view/<id>, /share/<id>
+        m = re.search(r'/(?:app|s|view|share|w|d)/([a-zA-Z0-9]+)', u.path)
+        if m:
+            return f"https://www.diskwala.com/app/{m.group(1)}"
+        # Check query param: ?id=<id>
+        qs = parse_qs(u.query)
+        if "id" in qs and qs["id"]:
+            return f"https://www.diskwala.com/app/{qs['id'][0]}"
+    except Exception:
+        pass
+    return input_url.strip()
 
 def detect_link_type(url: str):
     try:
@@ -68,10 +84,8 @@ async def resolve_terabox(url: str):
                 if resp.status == 200:
                     data = await resp.json()
                     
-                    # 1. Direct DDL or download_url or stream_url
                     dlink = data.get("ddl") or data.get("download_url") or data.get("stream_url")
                     
-                    # 2. Extract details
                     details = data.get("details") or {}
                     items = data.get("items") or []
                     first_item = items[0] if items and isinstance(items, list) else {}
@@ -162,35 +176,56 @@ async def resolve_youtube(url: str):
                 "video_id": data.get("videoId") or ""
             }
 
-# --- 3. Diskwala API Resolver ---
+# --- 3. Diskwala API Resolver (sunil-ssbots engine) ---
 async def resolve_diskwala(url: str):
     headers = {"User-Agent": UA, "Accept": "application/json"}
-    api_url = f"{config.DISKWALA_RESOLVER_URL}?q={quote(url, safe='')}"
+    normalized_url = normalize_diskwala_url(url)
+    
+    # 1. Primary call: sunil-ssbots Vercel API
+    endpoint = f"{config.DISKWALA_API_URL}?url={quote(normalized_url, safe='')}"
     
     async with aiohttp.ClientSession(headers=headers) as session:
         try:
-            async with session.get(api_url, timeout=aiohttp.ClientTimeout(total=20)) as resp:
+            async with session.get(endpoint, timeout=aiohttp.ClientTimeout(total=30)) as resp:
                 if resp.status == 200:
                     data = await resp.json()
-                    file_info = (data.get("data") or {}).get("file") or data.get("file")
-                    if data.get("success") and file_info and file_info.get("downloadUrl"):
-                        ext = (file_info.get("extension") or "mp4").strip(".")
-                        name = file_info.get("name") or "diskwala_video"
-                        if not name.lower().endswith(f".{ext}"):
-                            name = f"{name}.{ext}"
-                        size_bytes = int(file_info.get("sizeBytes") or 0)
+                    if data.get("success") and data.get("downloadUrl"):
+                        title = (data.get("title") or "diskwala_video").strip()
+                        if not title.lower().endswith(".mp4"):
+                            title = f"{title}.mp4"
                         return {
                             "provider": "Diskwala",
-                            "name": name,
-                            "size": file_info.get("size") or format_size(size_bytes),
-                            "size_bytes": size_bytes,
-                            "dlink": file_info.get("downloadUrl"),
-                            "thumbnail": file_info.get("thumbnail") or file_info.get("poster") or ""
+                            "name": title,
+                            "size": "Direct Stream",
+                            "size_bytes": 0,
+                            "dlink": data["downloadUrl"],
+                            "thumbnail": ""
+                        }
+        except Exception as e:
+            print(f"[DISKWALA API NOTE] Primary API error: {e}")
+
+        # 2. Direct Fallback: thediskwala upstream resolver
+        try:
+            upstream_url = f"https://thediskwala.com/api/diskwala-free?url={quote(normalized_url, safe='')}"
+            async with session.get(upstream_url, timeout=aiohttp.ClientTimeout(total=20)) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    if data.get("success") and data.get("url"):
+                        title = (data.get("title") or "diskwala_video").strip()
+                        if not title.lower().endswith(".mp4"):
+                            title = f"{title}.mp4"
+                        return {
+                            "provider": "Diskwala",
+                            "name": title,
+                            "size": "Direct Stream",
+                            "size_bytes": 0,
+                            "dlink": data["url"],
+                            "thumbnail": ""
                         }
         except Exception:
             pass
 
-        # Fallback to direct HTML parser
+        # 3. Direct HTML Parser Fallback
         try:
             async with session.get(url, headers={"User-Agent": UA, "Accept": "text/html"}, timeout=aiohttp.ClientTimeout(total=20)) as resp:
                 if resp.status == 200:
@@ -213,4 +248,4 @@ async def resolve_diskwala(url: str):
         except Exception:
             pass
 
-    raise Exception("Diskwala link could not be resolved. Make sure the link is public.")
+    raise Exception("Diskwala link could not be resolved. Make sure the link is public and still accessible.")
