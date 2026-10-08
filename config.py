@@ -39,9 +39,9 @@ try:
 except ValueError:
     LOG_CHANNEL = None
 
-# --- TeraBox & Diskwala Settings ---
-TERABOX_COOKIES = os.getenv("TERABOX_COOKIES", "")
-COOKIE_POOL_URL = os.getenv("TERABOX_COOKIE_POOL_URL", "https://tera.backend.live/cookies-list")
+# --- Custom High-Speed API Endpoints (Sunil-SSBots Engine) ---
+TERABOX_API_URL = os.getenv("TERABOX_API_URL", "https://sunil-ssbots.vercel.app/api/terabox")
+YOUTUBE_API_URL = os.getenv("YOUTUBE_API_URL", "https://sunil-ssbots.vercel.app/api/youtube")
 DISKWALA_RESOLVER_URL = os.getenv("DISKWALA_RESOLVER_URL", "https://diskwala-dl-six.vercel.app/api/scrap")
 
 # --- Download & Upload Settings ---
