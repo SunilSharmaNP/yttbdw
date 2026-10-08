@@ -9,6 +9,16 @@
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 import config
 
+# Safe fallbacks in case config attributes are missing
+DEALS_CHANNEL = getattr(config, "DEALS_CHANNEL", "Tg_Shoping")
+UPDATES_CHANNEL = getattr(config, "UPDATES_CHANNEL", "SSBotsUpdates")
+DEVELOPER_NAME = getattr(config, "DEVELOPER_NAME", "Ꞩᵾꞥīł Ꞩħⱥɍᵯⱥ ƻ.Ꝋ")
+DEVELOPER_URL = getattr(config, "DEVELOPER_URL", "https://t.me/Sunil_Sharma_2_0_Bot")
+CHANNEL_URL = getattr(config, "CHANNEL_URL", "https://t.me/SSBotsUpdates")
+YOUTUBE_URL = getattr(config, "YOUTUBE_URL", "https://www.youtube.com/@SunilWebTricks")
+SUPPORT_CHAT = getattr(config, "SUPPORT_CHAT", "Sunil_Sharma_2_0_Bot")
+OWNER_USERNAME = getattr(config, "OWNER_USERNAME", "Sunil_Sharma_2_0_Bot")
+
 class Script:
     START_TXT = """<blockquote><b>👋 𝐇ᴇʟʟᴏ {} ! 🌺</b></blockquote>
 
@@ -33,22 +43,22 @@ class Script:
 💫 <b>𝐇ᴏᴡ 𝐓ᴏ 𝐃ᴏᴡɴʟᴏᴀᴅ & 𝐑ᴇᴄᴇɪᴠᴇ 𝐅ɪʟᴇs :</b>
 
 🚀 <b>𝐒ᴛᴇᴘ 𝟏 : 𝐒ᴇɴᴅ 𝐋ɪɴᴋ</b>
-<blockquote>• 𝐂ᴏᴘʏ 𝐚ɴʏ <b>𝐓ᴇʀᴀ𝐁ᴏx</b> (terabox.com, 1024terabox.com, etc.), <b>𝐘ᴏᴜ𝐓ᴜʙᴇ</b>, 𝐨𝐫 <b>𝐃ɪsᴋᴡᴀʟᴀ</b> 𝐥𝐢𝐧𝐤.
-• 𝐏ᴀsᴛᴇ 𝐢𝐭 𝐝ɪʀᴇ𝐜ᴛ𝐥𝐲 𝐢𝐧 𝐭𝐡𝐢𝐬 𝐜𝐡𝐚𝐭.</blockquote>
+<blockquote>• 𝐂ᴏᴘʏ 𝐚ɴ𝐲 <b>𝐓ᴇʀᴀ𝐁ᴏx</b> (terabox.com, 1024terabox.com, etc.), <b>𝐘ᴏᴜ𝐓ᴜʙᴇ</b>, 𝐨𝐫 <b>𝐃ɪsᴋᴡᴀʟᴀ</b> 𝐥𝐢𝐧𝐤.
+• 𝐏ᴀsᴛᴇ 𝐢𝐭 𝐝ɪʀᴇ𝐜ᴛʟ𝐲 𝐢𝐧 𝐭𝐡𝐢𝐬 𝐜𝐡𝐚𝐭.</blockquote>
 
 ⚡ <b>𝐒ᴛᴇᴘ 𝟐 : 𝐐ᴜᴀʟɪᴛʏ 𝐒ᴇʟᴇᴄᴛɪᴏɴ (𝐅ᴏʀ 𝐘ᴏᴜ𝐓ᴜʙᴇ)</b>
 <blockquote>• 𝐅𝐨𝐫 𝐘𝐨𝐮𝐓𝐮𝐛𝐞, 𝐭𝐡𝐞 𝐛𝐨𝐭 𝐰𝐢𝐥𝐥 𝐟𝐞𝐭𝐜𝐡 𝐚𝐥𝐥 𝐯𝐢𝐝𝐞𝐨 (𝟏𝟎𝟖𝟎𝐩, 𝟕𝟐𝟎𝐩, 𝟒𝟖𝟎𝐩, 𝟑𝟔𝟎𝐩) & 𝐌𝐏𝟑 𝐪𝐮𝐚𝐥𝐢𝐭𝐢𝐞𝐬.
 • 𝐓𝐚𝐩 𝐲𝐨𝐮𝐫 𝐝𝐞𝐬𝐢𝐫𝐞𝐝 𝐪𝐮𝐚𝐥𝐢𝐭𝐲 𝐛𝐮𝐭𝐭𝐨𝐧!</blockquote>
 
 📤 <b>𝐒ᴛᴇᴘ 𝟑 : 𝐓ᴇʟᴇɢʀᴀᴍ 𝐔ᴘʟᴏᴀᴅ</b>
-<blockquote>• 𝐁ᴏ𝐭 𝐰𝐢𝐥𝐥 𝐝𝐨𝐰𝐧𝐥𝐨𝐚𝐝 𝐚𝐧𝐝 𝐮𝐩𝐥𝐨𝐚𝐝 𝐭𝐡𝐞 𝐯𝐢𝐝𝐞𝐨/𝐝𝐨𝐜𝐮𝐦𝐞𝐧𝐭 𝐝𝐢𝐫𝐞𝐜𝐭𝐥𝐲 𝐭𝐨 𝐲𝐨𝐮 (𝐮𝐩 𝐭𝐨 <b>𝟐 𝐆𝐁</b>).
+<blockquote>• 𝐁ᴏ𝐭 𝐰𝐢𝐥𝐥 𝐝𝐨𝐰𝐧𝐥𝐨𝐚𝐝 𝐚𝐧𝐝 𝐮𝐩𝐥𝐨𝐚𝐝 𝐭𝐡𝐞 𝐯𝐢𝐝𝐞𝐨/𝐝𝐨𝐜𝐮𝐦𝐞𝐧𝐭 𝐝𝐢𝐫ᴇ𝐜ᴛ𝐥𝐲 𝐭𝐨 𝐲𝐨𝐮 (𝐮𝐩 𝐭𝐨 <b>𝟐 𝐆𝐁</b>).
 • 𝐕𝐢𝐝𝐞𝐨𝐬 𝐚𝐫𝐞 𝐬𝐞𝐧𝐭 𝐰𝐢𝐭𝐡 𝐬𝐭𝐫𝐞𝐚𝐦𝐢𝐧𝐠 𝐬𝐮𝐩𝐩𝐨𝐫𝐭!</blockquote>
 
 <b><blockquote>⚠️ 𝐑ᴇᴘᴏʀᴛ 𝐈ssᴜᴇ: <a href='https://t.me/Sunil_Sharma_2_0_Bot'>𓆩Ꞩᵾꞥīł Ꞩħⱥɍᵯⱥ ƻ.Ꝋ [🇳🇵]𓆪</a></b></blockquote>"""
 
     ABOUT_TXT = """<blockquote><b>🌟 ── 𝐀ʙᴏᴜᴛ 𝐌ᴇ • 𝐃ᴏᴡɴʟᴏᴀᴅᴇʀ ── 🌟</b></blockquote>
 
-📌 <b>𝐈 𝐀ᴍ 𝐘ᴏᴜʀ 𝐔ʟᴛɪᴍᴀᴛᴇ 𝐓ᴇʀᴀ𝐁ᴏx, 𝐃ɪsᴋᴡᴀʟᴀ & 𝐘ᴏᴜ𝐓ᴜʙᴇ 𝐃ᴏᴡɴʟᴏᴀᴅᴇʀ ⚡</b>
+📌 <b>𝐈 𝐀ᴍ 𝐘ᴏᴜʀ 𝐔ʟᴛɪᴍᴀ𝐓ᴇ 𝐓ᴇʀᴀ𝐁ᴏx, 𝐃ɪsᴋᴡᴀʟᴀ & 𝐘ᴏᴜ𝐓ᴜʙᴇ 𝐃ᴏᴡɴʟᴏᴀᴅᴇʀ ⚡</b>
 
 ‣ <b>𝐌ʏ 𝐍ᴀᴍᴇ :</b> <a href="https://t.me/{}">{}</a>
 ‣ <b>𝐃ᴇᴠᴇʟᴏᴘᴇʀ :</b> <a href="https://t.me/Sunil_Sharma_2_0_Bot">𓆩Ꞩᵾꞥīł Ꞩħⱥɍᵯⱥ ƻ.Ꝋ [🇳🇵]𓆪</a>
@@ -74,7 +84,7 @@ class Script:
 
     YT_WAIT_TXT = """<blockquote><b>⏳ ── 𝐄xᴛʀᴀᴄᴛɪɴɢ 𝐘ᴏᴜ𝐓ᴜʙᴇ 𝐐ᴜᴀʟɪᴛɪᴇs ── 🎬</b></blockquote>
 
-🔍 <b>𝐋ᴏᴀᴅɪɴɢ 𝐀ʟ𝐥 𝐕ɪᴅᴇᴏ & 𝐀ᴜᴅɪᴏ 𝐅ᴏʀᴍᴀᴛs...</b>
+🔍 <b>𝐋ᴏᴀᴅɪɴɢ 𝐀ʟʟ 𝐕ɪᴅᴇᴏ & 𝐀ᴜᴅɪᴏ 𝐅ᴏʀᴍᴀᴛs...</b>
 
 <blockquote>⚡ <i>𝐏𝐥𝐞𝐚𝐬𝐞 𝐰𝐚𝐢𝐭 𝟒𝟎-𝟓𝟎 𝐬𝐞𝐜𝐨𝐧𝐝𝐬. 𝐎𝐮𝐫 𝐡𝐢𝐠𝐡-𝐬𝐩𝐞𝐞𝐝 𝐞𝐧𝐠𝐢𝐧𝐞 𝐢𝐬 𝐞𝐱𝐭𝐫𝐚𝐜𝐭𝐢𝐧𝐠 𝐚𝐥𝐥 𝐯𝐞𝐫𝐢𝐟𝐢𝐞𝐝 𝐪𝐮𝐚𝐥𝐢𝐭𝐢𝐞𝐬 (𝟏𝟎𝟖𝟎𝐩, 𝟕𝟐𝟎𝐩, 𝟒𝟖𝟎𝐩, 𝟑𝟔𝟎𝐩 &amp; 𝐌𝐏𝟑)...</i></blockquote>"""
 
@@ -102,11 +112,11 @@ def get_start_buttons(bot_username: str):
             InlineKeyboardButton('💝 𝐀ʙᴏᴜᴛ', callback_data='about')
         ],
         [
-            InlineKeyboardButton("🛍️ 𝐋ᴏᴏᴛ 𝐃ᴇᴀʟs 🔥", url=f'https://t.me/{config.DEALS_CHANNEL}')
+            InlineKeyboardButton("🛍️ 𝐋ᴏᴏᴛ 𝐃ᴇᴀʟs 🔥", url=f'https://t.me/{DEALS_CHANNEL}')
         ],
         [
-            InlineKeyboardButton("📺 𝐘ᴏᴜ𝐓ᴜʙᴇ 𝐂ʜᴀɴɴᴇʟ", url=config.YOUTUBE_URL),
-            InlineKeyboardButton("📢 𝐔ᴘᴅᴀᴛᴇs", url=config.CHANNEL_URL)
+            InlineKeyboardButton("📺 𝐘ᴏᴜ𝐓ᴜʙᴇ 𝐂ʜᴀɴɴᴇʟ", url=YOUTUBE_URL),
+            InlineKeyboardButton("📢 𝐔ᴘᴅᴀᴛᴇs", url=CHANNEL_URL)
         ],
         [
             InlineKeyboardButton('🔚 𝐂ʟᴏsᴇ 🔚', callback_data='close')
@@ -120,10 +130,10 @@ def get_help_buttons():
             InlineKeyboardButton('💝 𝐀ʙᴏᴜᴛ', callback_data='about')
         ],
         [
-            InlineKeyboardButton("🛍️ 𝐋ᴏᴏᴛ 𝐃ᴇᴀʟs 🔥", url=f'https://t.me/{config.DEALS_CHANNEL}')
+            InlineKeyboardButton("🛍️ 𝐋ᴏᴏᴛ 𝐃ᴇᴀʟs 🔥", url=f'https://t.me/{DEALS_CHANNEL}')
         ],
         [
-            InlineKeyboardButton("💬 𝐃ᴏᴜʙᴛ / 𝐂ᴏɴᴛᴀᴄᴛ", url=config.DEVELOPER_URL)
+            InlineKeyboardButton("💬 𝐃ᴏᴜʙᴛ / 𝐂ᴏɴᴛᴀᴄᴛ", url=DEVELOPER_URL)
         ],
         [
             InlineKeyboardButton('🔚 𝐂ʟᴏsᴇ 🔚', callback_data='close')
@@ -137,11 +147,11 @@ def get_about_buttons():
             InlineKeyboardButton('🏠 𝐇ᴏᴍᴇ', callback_data='home')
         ],
         [
-            InlineKeyboardButton("🛍️ 𝐋ᴏᴏᴛ 𝐃ᴇᴀʟs 🔥", url=f'https://t.me/{config.DEALS_CHANNEL}')
+            InlineKeyboardButton("🛍️ 𝐋ᴏᴏᴛ 𝐃ᴇᴀʟs 🔥", url=f'https://t.me/{DEALS_CHANNEL}')
         ],
         [
-            InlineKeyboardButton("📺 𝐘ᴏᴜ𝐓ᴜʙᴇ", url=config.YOUTUBE_URL),
-            InlineKeyboardButton("📢 𝐔ᴘᴅᴀᴛᴇs", url=config.CHANNEL_URL)
+            InlineKeyboardButton("📺 𝐘ᴏᴜ𝐓ᴜʙᴇ", url=YOUTUBE_URL),
+            InlineKeyboardButton("📢 𝐔ᴘᴅᴀᴛᴇs", url=CHANNEL_URL)
         ],
         [
             InlineKeyboardButton('🔚 𝐂ʟᴏsᴇ 🔚', callback_data='close')
@@ -172,7 +182,6 @@ def get_youtube_quality_buttons(cache_id: str, download_links: list):
         label = item.get("label") or fmt
         itype = item.get("type") or "video"
 
-        # Shorter clean label for button
         if fmt in ["1080", "1080p"]:
             btn_text = "🎬 1080p MP4"
         elif fmt in ["720", "720p"]:
@@ -201,11 +210,9 @@ def get_youtube_quality_buttons(cache_id: str, download_links: list):
         else:
             video_row.append(InlineKeyboardButton(btn_text, callback_data=cb_data))
 
-    # Chunk video buttons into rows of 2
     for i in range(0, len(video_row), 2):
         buttons.append(video_row[i:i+2])
 
-    # Chunk audio buttons into rows of 2
     for i in range(0, len(audio_row), 2):
         buttons.append(audio_row[i:i+2])
 
