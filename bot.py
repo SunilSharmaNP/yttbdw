@@ -612,7 +612,9 @@ def run():
         f"📢 Telegram Channel : {config.CHANNEL_URL} (@{config.UPDATES_CHANNEL})\n"
         f"📺 YouTube Channel  : {config.YOUTUBE_URL} (SunilWebTricks)\n"
         f"💬 Ask Doubt/Support: @{config.SUPPORT_CHAT}\n"
-        f"🌐 API Engine       : {config.TERABOX_API_URL}\n"
+        f"🌐 TeraBox API     : {config.TERABOX_API_URL}\n"
+        f"🌐 Diskwala API    : {config.DISKWALA_API_URL}\n"
+        f"🌐 YouTube API     : {config.YOUTUBE_API_URL}\n"
         "===================================================================="
     )
     print(deploy_banner)
