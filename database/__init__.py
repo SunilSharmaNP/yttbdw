@@ -13,10 +13,15 @@ from .db import (
     remove_sudo_user,
     db_add_user,
     db_log_download,
+    set_user_thumbnail,
+    get_user_thumbnail,
+    del_user_thumbnail,
+    get_all_broadcast_users,
 )
 
 __all__ = [
     "OWNER_ID", "sudo_users_set", "banned_users_set", "registered_users_set",
     "bot_start_time", "db", "is_admin", "is_banned", "ban_user", "unban_user",
-    "add_sudo_user", "remove_sudo_user", "db_add_user", "db_log_download"
+    "add_sudo_user", "remove_sudo_user", "db_add_user", "db_log_download",
+    "set_user_thumbnail", "get_user_thumbnail", "del_user_thumbnail", "get_all_broadcast_users"
 ]
