@@ -20,6 +20,7 @@ from helpers.cache import yt_cache
 from helpers.progress import ProgressTracker, download_file, get_cancel_button
 from helpers.ffmpeg import mux_media_ffmpeg, convert_to_mp3_ffmpeg, get_video_metadata
 from helpers.privacy import get_effective_thumbnail
+from helpers.youtube_download import download_youtube_video
 from core.queue import task_manager, TaskCancelledException
 from resolvers import format_size
 
@@ -272,34 +273,70 @@ def register_callback_handlers(app: Client):
                         reply_markup=get_cancel_button(user_id)
                     )
                     video_tracker = ProgressTracker(status_msg, f"⏬ [1/3] Video Track: {fmt}", user_id=user_id)
-                    await download_file(video_url, raw_video_path, video_tracker, user_id=user_id)
-
                     final_upload_path = raw_video_path
                     file_name = f"{safe_title}_{fmt}.{v_ext}"
 
-                    if audio_url:
-                        raw_audio_path = os.path.join(DOWNLOAD_DIR, f"{ts}_a_{safe_title}.m4a")
-                        task_manager.register_task_file(user_id, raw_audio_path)
+                    try:
+                        await download_file(video_url, raw_video_path, video_tracker, user_id=user_id)
+
+                        if audio_url:
+                            raw_audio_path = os.path.join(DOWNLOAD_DIR, f"{ts}_a_{safe_title}.m4a")
+                            task_manager.register_task_file(user_id, raw_audio_path)
+                            await status_msg.edit_text(
+                                f"🎵 <b>[2/3] Downloading High-Quality Audio Track...</b>\n"
+                                f"<blockquote>⚡ <i>Fetching synchronized audio stream...</i></blockquote>",
+                                reply_markup=get_cancel_button(user_id)
+                            )
+                            audio_tracker = ProgressTracker(status_msg, "🎵 [2/3] Audio Track", user_id=user_id)
+                            await download_file(audio_url, raw_audio_path, audio_tracker, user_id=user_id)
+
+                            if task_manager.is_cancelled(user_id):
+                                raise TaskCancelledException()
+
+                            await status_msg.edit_text(
+                                f"⚡ <b>[3/3] Fast Muxing Video + Audio via FFmpeg...</b>\n"
+                                f"<blockquote>🎬 <i>Synchronizing media into single MP4 file...</i></blockquote>",
+                                reply_markup=get_cancel_button(user_id)
+                            )
+                            is_muxed = await mux_media_ffmpeg(raw_video_path, raw_audio_path, muxed_path)
+                            if is_muxed:
+                                final_upload_path = muxed_path
+                                file_name = f"{safe_title}_{fmt}.mp4"
+                    except Exception as stream_error:
+                        error_text = str(stream_error)
+                        if (
+                            "Download HTTP error 403" not in error_text
+                            and "Download HTTP error 410" not in error_text
+                        ):
+                            raise
+
+                        video_id = cached.get("video_id")
+                        if not video_id:
+                            raise RuntimeError(
+                                "YouTube stream was rejected (HTTP 403/410), and no video ID "
+                                "is available for a fresh download."
+                            ) from stream_error
+
                         await status_msg.edit_text(
-                            f"🎵 <b>[2/3] Downloading High-Quality Audio Track...</b>\n"
-                            f"<blockquote>⚡ <i>Fetching synchronized audio stream...</i></blockquote>",
+                            f"🔄 <b>Refreshing YouTube stream for {fmt}...</b>\n"
+                            "<blockquote>⚡ <i>The temporary stream link expired or rejected "
+                            "the bot. Fetching a fresh stream now.</i></blockquote>",
                             reply_markup=get_cancel_button(user_id)
                         )
-                        audio_tracker = ProgressTracker(status_msg, f"🎵 [2/3] Audio Track", user_id=user_id)
-                        await download_file(audio_url, raw_audio_path, audio_tracker, user_id=user_id)
-
-                        if task_manager.is_cancelled(user_id):
-                            raise TaskCancelledException()
-
-                        await status_msg.edit_text(
-                            f"⚡ <b>[3/3] Fast Muxing Video + Audio via FFmpeg...</b>\n"
-                            f"<blockquote>🎬 <i>Synchronizing media into single MP4 file...</i></blockquote>",
-                            reply_markup=get_cancel_button(user_id)
+                        retry_tracker = ProgressTracker(
+                            status_msg,
+                            f"⏬ Downloading fresh YouTube stream: {fmt}",
+                            user_id=user_id
                         )
-                        is_muxed = await mux_media_ffmpeg(raw_video_path, raw_audio_path, muxed_path)
-                        if is_muxed:
-                            final_upload_path = muxed_path
-                            file_name = f"{safe_title}_{fmt}.mp4"
+                        await download_youtube_video(
+                            video_id,
+                            fmt,
+                            muxed_path,
+                            retry_tracker,
+                            user_id
+                        )
+                        final_upload_path = muxed_path
+                        file_name = f"{safe_title}_{fmt}.mp4"
 
                     if task_manager.is_cancelled(user_id):
                         raise TaskCancelledException()
