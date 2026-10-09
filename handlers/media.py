@@ -80,14 +80,17 @@ def register_media_handlers(app: Client):
                 )
                 try:
                     yt_info = await resolve_youtube(url)
-                    cache_id = f"yt_{int(time.time())}_{user_id}"
-                    yt_cache.set(cache_id, {
+                    cache_id = f"{user_id}_{int(time.time())}"
+                    yt_payload = {
                         "title": yt_info["title"],
                         "author": yt_info["author"],
                         "thumbnail": yt_info.get("thumbnail"),
                         "download_links": yt_info["download_links"],
+                        "best_audio_url": yt_info.get("best_audio_url"),
                         "user_id": user_id
-                    })
+                    }
+                    yt_cache.set(cache_id, yt_payload)
+                    yt_cache.set(str(user_id), yt_payload)
 
                     buttons = get_youtube_quality_buttons(cache_id, yt_info["download_links"])
                     info_text = Script.YT_INFO_TXT.format(
