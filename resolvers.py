@@ -7,13 +7,20 @@
 # ==============================================================================
 
 import re
-import aiohttp
+try:
+    import aiohttp
+except ImportError:
+    aiohttp = None
+import asyncio
+import json
+import urllib.request
 from urllib.parse import urlparse, quote, parse_qs
 import config
 
 TERABOX_API_URL = getattr(config, "TERABOX_API_URL", "https://sunil-ssbots.vercel.app/api/terabox")
 DISKWALA_API_URL = getattr(config, "DISKWALA_API_URL", "https://sunil-ssbots.vercel.app/api/diskwala")
 YOUTUBE_API_URL = getattr(config, "YOUTUBE_API_URL", "https://sunil-ssbots.vercel.app/api/youtube")
+YTULTRA_API_URL = getattr(config, "YTULTRA_API_URL", "https://api.ytultra.com/ikool/youtube/download")
 
 TERABOX_HOSTS = {
     "terabox.com", "www.terabox.com", "terabox.app", "www.terabox.app",
@@ -146,35 +153,226 @@ async def resolve_terabox(url: str):
 
     raise Exception("TeraBox resolver could not extract download link. Please verify link is valid and public.")
 
-# --- 2. YouTube Video & Audio API Resolver (sunil-ssbots engine) ---
+# --- 2. YouTube Video & Audio API Resolver (ytultra.com Engine) ---
 async def resolve_youtube(url: str):
-    headers = {"User-Agent": UA, "Accept": "application/json"}
-    endpoint = f"{YOUTUBE_API_URL}?url={quote(url, safe='')}"
-    
-    async with aiohttp.ClientSession(headers=headers) as session:
-        async with session.get(endpoint, timeout=aiohttp.ClientTimeout(total=90)) as resp:
-            if resp.status != 200:
-                raise Exception(f"YouTube API returned HTTP {resp.status}")
-            data = await resp.json()
-            if not data.get("success"):
-                raise Exception(data.get("error") or "YouTube extraction failed.")
-            
-            title = data.get("title") or "YouTube Video"
-            author = data.get("authorName") or "YouTube Channel"
-            thumbnail = data.get("thumbnailUrl") or ""
-            download_links = data.get("downloadLinks") or []
-            
-            if not download_links:
-                raise Exception("No downloadable video or audio qualities found for this YouTube link.")
-            
-            return {
-                "provider": "YouTube",
-                "title": title,
-                "author": author,
-                "thumbnail": thumbnail,
-                "download_links": download_links,
-                "video_id": data.get("videoId") or ""
-            }
+    """
+    Extracts high-speed video and audio streams from ytultra.com (https://www.ytultra.com/en/youtube-video-downloader/)
+    Fetches all available video qualities (4K, 2K, 1080p, 720p, 480p, 360p, 240p, 144p) and the best audio stream
+    for synchronized FFmpeg muxing.
+    """
+    m = re.search(r"(?:v=|\/|youtu\.be\/|embed\/|shorts\/)([a-zA-Z0-9_-]{11})", url)
+    video_id = m.group(1) if m else ""
+    standard_url = f"https://www.youtube.com/watch?v={video_id}" if video_id else url.strip()
+
+    title = "YouTube Video"
+    author = "YouTube Channel"
+    thumbnail = f"https://i.ytimg.com/vi/{video_id}/maxresdefault.jpg" if video_id else ""
+
+    headers = {
+        "Content-Type": "application/json",
+        "User-Agent": UA,
+        "Origin": "https://www.ytultra.com",
+        "Referer": "https://www.ytultra.com/en/youtube-video-downloader/",
+        "Accept": "application/json"
+    }
+
+    # 1. Fetch title and author from oEmbed
+    try:
+        oembed_url = f"https://www.youtube.com/oembed?url={quote(standard_url, safe='')}&format=json"
+        if aiohttp:
+            async with aiohttp.ClientSession(headers={"User-Agent": UA}) as s:
+                async with s.get(oembed_url, timeout=aiohttp.ClientTimeout(total=8)) as oresp:
+                    if oresp.status == 200:
+                        oe_data = await oresp.json()
+                        title = oe_data.get("title") or title
+                        author = oe_data.get("author_name") or author
+                        if not thumbnail:
+                            thumbnail = oe_data.get("thumbnail_url") or thumbnail
+        else:
+            req_oe = urllib.request.Request(oembed_url, headers={"User-Agent": UA})
+            loop = asyncio.get_event_loop()
+            def fetch_oe():
+                with urllib.request.urlopen(req_oe, timeout=5) as r:
+                    return json.loads(r.read().decode("utf-8"))
+            oe_data = await loop.run_in_executor(None, fetch_oe)
+            title = oe_data.get("title") or title
+            author = oe_data.get("author_name") or author
+            if not thumbnail:
+                thumbnail = oe_data.get("thumbnail_url") or thumbnail
+    except Exception:
+        pass
+
+    # 2. Call ytultra API
+    ytultra_endpoint = getattr(config, "YTULTRA_API_URL", "https://api.ytultra.com/ikool/youtube/download")
+    payload = {"url": standard_url}
+
+    data = None
+    if aiohttp:
+        try:
+            async with aiohttp.ClientSession(headers=headers) as session:
+                async with session.post(ytultra_endpoint, json=payload, timeout=aiohttp.ClientTimeout(total=25)) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+        except Exception as e:
+            print(f"[YTULTRA API ERROR] aiohttp failed: {e}")
+
+    # Fallback to standard urllib if aiohttp encounters issues
+    if not data:
+        try:
+            req = urllib.request.Request(
+                ytultra_endpoint,
+                data=json.dumps(payload).encode("utf-8"),
+                headers=headers
+            )
+            loop = asyncio.get_event_loop()
+            def sync_fetch():
+                with urllib.request.urlopen(req, timeout=20) as resp:
+                    return json.loads(resp.read().decode("utf-8"))
+            data = await loop.run_in_executor(None, sync_fetch)
+        except Exception as e:
+            print(f"[YTULTRA API FALLBACK ERROR] urllib failed: {e}")
+
+    if not data or (data.get("code") != "0000" and not data.get("data")):
+        err_msg = data.get("msg") or data.get("error") if data else "ytultra.com did not respond."
+        raise Exception(f"Failed to fetch streams from ytultra.com: {err_msg}")
+
+    info = data.get("data") or {}
+    if not thumbnail and info.get("imageUrl"):
+        thumbnail = info.get("imageUrl")
+
+    medias = info.get("medias") or []
+    if not medias:
+        raise Exception("No video or audio streams found on ytultra.com for this video.")
+
+    # 3. Categorize into Video streams and Audio streams
+    video_map = {}
+    audio_streams = []
+
+    for item in medias:
+        url = item.get("url")
+        if not url:
+            continue
+        fmt_str = str(item.get("format") or "").strip()
+        fmt_lower = fmt_str.lower()
+        file_size = item.get("fileSize")
+
+        # Check if audio
+        is_audio = any(ext in fmt_lower for ext in [".m4a", ".weba", ".mp3", ".aac"]) or ("audio" in fmt_lower and not any(v in fmt_lower for v in [".mp4", ".webm"]))
+        if is_audio:
+            audio_streams.append({
+                "format": fmt_str,
+                "url": url,
+                "fileSize": file_size,
+                "is_m4a": ".m4a" in fmt_lower
+            })
+        else:
+            # Video stream
+            q_tag = None
+            label = None
+            if "4k" in fmt_lower or "2160" in fmt_lower:
+                q_tag = "4K"
+                label = "🎬 4K (2160p)"
+            elif "2k" in fmt_lower or "1440" in fmt_lower:
+                q_tag = "2K"
+                label = "🎬 2K (1440p)"
+            elif "1080" in fmt_lower:
+                q_tag = "1080p"
+                label = "🎬 1080p MP4"
+            elif "720" in fmt_lower:
+                q_tag = "720p"
+                label = "🎬 720p MP4"
+            elif "480" in fmt_lower:
+                q_tag = "480p"
+                label = "🎬 480p MP4"
+            elif "360" in fmt_lower:
+                q_tag = "360p"
+                label = "🎬 360p MP4"
+            elif "240" in fmt_lower:
+                q_tag = "240p"
+                label = "🎬 240p MP4"
+            elif "144" in fmt_lower:
+                q_tag = "144p"
+                label = "🎬 144p MP4"
+            else:
+                m_p = re.search(r"(\d{3,4}p)", fmt_str)
+                if m_p:
+                    q_tag = m_p.group(1)
+                    label = f"🎬 {q_tag}"
+                else:
+                    q_tag = fmt_str.split()[0] if fmt_str else "video"
+                    label = f"🎬 {q_tag}"
+
+            ext = "webm" if ".webm" in fmt_lower else "mp4"
+
+            # Prefer mp4 over webm for same resolution if available
+            if q_tag not in video_map or (ext == "mp4" and video_map[q_tag]["ext"] == "webm"):
+                video_map[q_tag] = {
+                    "format": q_tag,
+                    "label": label,
+                    "raw_format": fmt_str,
+                    "type": "video",
+                    "ext": ext,
+                    "size": format_size(file_size) if file_size else "Dynamic",
+                    "size_bytes": file_size or 0,
+                    "downloadUrl": url
+                }
+
+    # Pick the best audio stream (prefer m4a/aac, then largest size)
+    best_audio = None
+    m4a_audios = [a for a in audio_streams if a.get("is_m4a")]
+    if m4a_audios:
+        best_audio = m4a_audios[0]
+    elif audio_streams:
+        best_audio = max(audio_streams, key=lambda a: a.get("fileSize") or 0)
+
+    best_audio_url = best_audio.get("url") if best_audio else None
+    best_audio_size = best_audio.get("fileSize") if best_audio else 0
+
+    # Build final download_links list in descending quality order
+    quality_order = ["4K", "2K", "1080p", "720p", "480p", "360p", "240p", "144p"]
+    download_links = []
+
+    for q in quality_order:
+        if q in video_map:
+            v_item = video_map[q]
+            v_item["audioUrl"] = best_audio_url
+            download_links.append(v_item)
+
+    for q, v_item in video_map.items():
+        if q not in quality_order:
+            v_item["audioUrl"] = best_audio_url
+            download_links.append(v_item)
+
+    # Append Audio options
+    if best_audio_url:
+        download_links.append({
+            "format": "mp3",
+            "label": "🎵 MP3 Audio (192k)",
+            "type": "audio",
+            "ext": "mp3",
+            "size": format_size(best_audio_size) if best_audio_size else "Audio",
+            "size_bytes": best_audio_size or 0,
+            "downloadUrl": best_audio_url
+        })
+        download_links.append({
+            "format": "m4a",
+            "label": "🎵 M4A Audio (AAC)",
+            "type": "audio",
+            "ext": "m4a",
+            "size": format_size(best_audio_size) if best_audio_size else "Audio",
+            "size_bytes": best_audio_size or 0,
+            "downloadUrl": best_audio_url
+        })
+
+    return {
+        "provider": "YouTube (ytultra Engine)",
+        "title": title,
+        "author": author,
+        "thumbnail": thumbnail,
+        "download_links": download_links,
+        "best_audio_url": best_audio_url,
+        "video_id": video_id
+    }
 
 # --- 3. Diskwala API Resolver (sunil-ssbots engine) ---
 async def resolve_diskwala(url: str):
