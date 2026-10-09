@@ -34,6 +34,8 @@ def register_callback_handlers(app: Client):
     async def callback_dispatcher(client: Client, query: CallbackQuery):
         data = query.data
         user_id = query.from_user.id
+        print(f"[CALLBACK] Received click: {data} from user {user_id}")
+
         if is_banned(user_id):
             return await query.answer("⛔ You are banned from using this bot!", show_alert=True)
 
@@ -114,272 +116,284 @@ def register_callback_handlers(app: Client):
                     parts = data.split("_")
                     idx = int(parts[-1])
                     cache_id = "_".join(parts[1:-1])
-            except Exception:
+            except Exception as e:
+                print(f"[CALLBACK ERROR] Failed to parse YouTube callback data '{data}': {e}")
                 return await query.answer("⚠️ Invalid quality parameter.", show_alert=True)
 
             cached = yt_cache.get(cache_id) or yt_cache.get(str(user_id))
             if not cached:
+                print(f"[CALLBACK ERROR] YouTube cache miss for cache_id={cache_id}, user={user_id}")
                 return await query.answer("⚠️ Session Expired! Please re-send the YouTube link.", show_alert=True)
 
-                download_links = cached.get("download_links", [])
-                if idx >= len(download_links):
-                    return await query.answer("⚠️ Invalid Quality selection.", show_alert=True)
+            download_links = cached.get("download_links", [])
+            if idx >= len(download_links):
+                return await query.answer("⚠️ Invalid Quality selection.", show_alert=True)
 
-                allowed, reason, rem = task_manager.check_user_allowed(user_id)
-                if not allowed:
-                    if reason == "running":
-                        return await query.answer("⚠️ You already have an active task running! Please wait for it to complete.", show_alert=True)
-                    elif reason == "cooldown":
-                        return await query.answer(f"⏳ Cooldown active! Please wait {rem}s before starting a new task (1 min cooldown).", show_alert=True)
+            allowed, reason, rem = task_manager.check_user_allowed(user_id)
+            if not allowed:
+                if reason == "running":
+                    return await query.answer("⚠️ You already have an active task running! Please wait for it to complete.", show_alert=True)
+                elif reason == "cooldown":
+                    return await query.answer(f"⏳ Cooldown active! Please wait {rem}s before starting a new task (1 min cooldown).", show_alert=True)
 
-                task_manager.mark_user_active(user_id)
+            task_manager.mark_user_active(user_id)
 
-                selected = download_links[idx]
-                video_url = selected.get("downloadUrl")
-                audio_url = selected.get("audioUrl") or cached.get("best_audio_url")
-                fmt = selected.get("format") or selected.get("label") or "best"
-                itype = selected.get("type") or "video"
-                title = cached.get("title") or "YouTube_Video"
+            selected = download_links[idx]
+            video_url = selected.get("downloadUrl")
+            audio_url = selected.get("audioUrl") or cached.get("best_audio_url")
+            fmt = selected.get("format") or selected.get("label") or "best"
+            itype = selected.get("type") or "video"
+            title = cached.get("title") or "YouTube_Video"
 
-                await query.answer(f"⏳ Processing {fmt}...", show_alert=False)
+            await query.answer(f"⏳ Processing {fmt}...", show_alert=False)
 
-                status_msg = query.message
-                safe_title = "".join(c for c in title if c.isalnum() or c in "._- ").strip() or "video"
-                ts = int(time.time())
-                task_start_time = time.time()
+            status_msg = query.message
+            safe_title = "".join(c for c in title if c.isalnum() or c in "._- ").strip() or "video"
+            ts = int(time.time())
+            task_start_time = time.time()
 
-                raw_video_path = None
-                raw_audio_path = None
-                muxed_path = None
-                mp3_path = None
-                meta = {}
-                final_thumb_path = None
+            raw_video_path = None
+            raw_audio_path = None
+            muxed_path = None
+            mp3_path = None
+            meta = {}
+            final_thumb_path = None
 
-                try:
-                    queue_pos = await task_manager.acquire_slot(user_id, status_msg)
-                    if queue_pos > 0:
+            try:
+                queue_pos = await task_manager.acquire_slot(user_id, status_msg)
+                if queue_pos > 0:
+                    await status_msg.edit_text(
+                        f"⚡ <b>ǫᴜᴇᴜᴇ sʟᴏᴛ ɢʀᴀɴᴛᴇᴅ!</b>\n<i>sᴛᴀʀᴛɪɴɢ ʏᴏᴜʀ {fmt} ᴅᴏᴡɴʟᴏᴀᴅ ɴᴏᴡ...</i>",
+                        parse_mode=enums.ParseMode.HTML,
+                        reply_markup=get_cancel_button(user_id)
+                    )
+
+                queue_status_text = f"Queue #{queue_pos}" if queue_pos > 0 else "Active Slot (Immediate)"
+                now_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+                await send_log(
+                    client,
+                    Script.LOG_NEW_TASK_TXT.format(
+                        user_id=user_id,
+                        name=user_name,
+                        provider=f"YouTube ({fmt.upper()})",
+                        link_or_title=title,
+                        queue_status=queue_status_text,
+                        timestamp=now_str
+                    )
+                )
+
+                if itype == "audio":
+                    target_audio_url = video_url or audio_url
+                    if not target_audio_url:
+                        raise Exception("Audio stream URL not found.")
+
+                    raw_audio_path = os.path.join(DOWNLOAD_DIR, f"{ts}_a_{safe_title}.m4a")
+                    task_manager.register_task_file(user_id, raw_audio_path)
+
+                    await status_msg.edit_text(
+                        f"🎵 <b>Downloading Audio Stream:</b> <code>{title}</code>\n"
+                        f"📦 <b>Format:</b> <code>{fmt.upper()}</code>\n"
+                        f"<blockquote>⚡ <i>Connecting to high-speed stream from ytultra...</i></blockquote>",
+                        reply_markup=get_cancel_button(user_id)
+                    )
+                    audio_tracker = ProgressTracker(status_msg, f"🎵 Downloading Audio: {title}", user_id=user_id)
+                    await download_file(target_audio_url, raw_audio_path, audio_tracker, user_id=user_id)
+
+                    upload_file_path = raw_audio_path
+                    file_name = f"{safe_title}_{fmt}.m4a"
+
+                    if fmt.lower() == "mp3":
+                        mp3_path = os.path.join(DOWNLOAD_DIR, f"{ts}_{safe_title}.mp3")
+                        task_manager.register_task_file(user_id, mp3_path)
                         await status_msg.edit_text(
-                            f"⚡ <b>ǫᴜᴇᴜᴇ sʟᴏᴛ ɢʀᴀɴᴛᴇᴅ!</b>\n<i>sᴛᴀʀᴛɪɴɢ ʏᴏᴜʀ {fmt} ᴅᴏᴡɴʟᴏᴀᴅ ɴᴏᴡ...</i>",
-                            parse_mode=enums.ParseMode.HTML,
+                            f"⚡ <b>Converting Audio to MP3 (192kbps)...</b>\n"
+                            f"<blockquote>🎬 <i>Encoding with FFmpeg...</i></blockquote>",
                             reply_markup=get_cancel_button(user_id)
                         )
+                        if await convert_to_mp3_ffmpeg(raw_audio_path, mp3_path):
+                            upload_file_path = mp3_path
+                            file_name = f"{safe_title}.mp3"
 
-                    queue_status_text = f"Queue #{queue_pos}" if queue_pos > 0 else "Active Slot (Immediate)"
-                    now_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+                    if task_manager.is_cancelled(user_id):
+                        raise TaskCancelledException()
+
+                    file_size_bytes = os.path.getsize(upload_file_path)
+                    file_size_human = format_size(file_size_bytes)
+                    upload_tracker = ProgressTracker(status_msg, f"📤 Uploading Audio to Telegram: {title}", user_id=user_id)
+                    async def upload_progress(current, total):
+                        if task_manager.is_cancelled(user_id):
+                            raise TaskCancelledException()
+                        await upload_tracker.update(current, total)
+
+                    caption = Script.CAPTION_TXT.format(
+                        file_name=file_name,
+                        file_size=file_size_human,
+                        provider=f"YouTube ({fmt.upper()} Audio)",
+                        deals_channel=DEALS_CHANNEL
+                    )
+
+                    await client.send_audio(
+                        chat_id=query.message.chat.id,
+                        audio=upload_file_path,
+                        caption=caption,
+                        title=title,
+                        performer=cached.get("author") or "YouTube",
+                        progress=upload_progress
+                    )
+                    db_log_download(user_id, "YouTube Audio", file_name, file_size_human)
+                    await status_msg.delete()
+
+                    elapsed_sec = int(time.time() - task_start_time)
+                    dur_str = f"{elapsed_sec}s" if elapsed_sec < 60 else f"{elapsed_sec // 60}m {elapsed_sec % 60}s"
                     await send_log(
                         client,
-                        Script.LOG_NEW_TASK_TXT.format(
+                        Script.LOG_TASK_COMPLETED_TXT.format(
                             user_id=user_id,
                             name=user_name,
-                            provider=f"YouTube ({fmt.upper()})",
-                            link_or_title=title,
-                            queue_status=queue_status_text,
-                            timestamp=now_str
+                            provider="YouTube (Audio)",
+                            file_name=file_name,
+                            file_size=file_size_human,
+                            duration=dur_str,
+                            timestamp=datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
                         )
                     )
 
-                    if itype == "audio":
-                        target_audio_url = video_url or audio_url
-                        if not target_audio_url:
-                            raise Exception("Audio stream URL not found.")
+                else:
+                    v_ext = selected.get("ext") or "mp4"
+                    raw_video_path = os.path.join(DOWNLOAD_DIR, f"{ts}_v_{safe_title}.{v_ext}")
+                    muxed_path = os.path.join(DOWNLOAD_DIR, f"{ts}_{safe_title}_{fmt}.mp4")
+                    task_manager.register_task_file(user_id, raw_video_path)
+                    task_manager.register_task_file(user_id, muxed_path)
 
+                    await status_msg.edit_text(
+                        f"⏬ <b>[1/3] Downloading Video Track:</b> <code>{title}</code>\n"
+                        f"📦 <b>Quality:</b> <code>{fmt}</code>\n"
+                        f"<blockquote>⚡ <i>Fetching adaptive video stream from ytultra...</i></blockquote>",
+                        reply_markup=get_cancel_button(user_id)
+                    )
+                    video_tracker = ProgressTracker(status_msg, f"⏬ [1/3] Video Track: {fmt}", user_id=user_id)
+                    await download_file(video_url, raw_video_path, video_tracker, user_id=user_id)
+
+                    final_upload_path = raw_video_path
+                    file_name = f"{safe_title}_{fmt}.{v_ext}"
+
+                    if audio_url:
                         raw_audio_path = os.path.join(DOWNLOAD_DIR, f"{ts}_a_{safe_title}.m4a")
                         task_manager.register_task_file(user_id, raw_audio_path)
-
                         await status_msg.edit_text(
-                            f"🎵 <b>Downloading Audio Stream:</b> <code>{title}</code>\n"
-                            f"📦 <b>Format:</b> <code>{fmt.upper()}</code>\n"
-                            f"<blockquote>⚡ <i>Connecting to high-speed stream from ytultra...</i></blockquote>",
+                            f"🎵 <b>[2/3] Downloading High-Quality Audio Track...</b>\n"
+                            f"<blockquote>⚡ <i>Fetching synchronized audio stream...</i></blockquote>",
                             reply_markup=get_cancel_button(user_id)
                         )
-                        audio_tracker = ProgressTracker(status_msg, f"🎵 Downloading Audio: {title}", user_id=user_id)
-                        await download_file(target_audio_url, raw_audio_path, audio_tracker, user_id=user_id)
-
-                        upload_file_path = raw_audio_path
-                        file_name = f"{safe_title}_{fmt}.m4a"
-
-                        if fmt.lower() == "mp3":
-                            mp3_path = os.path.join(DOWNLOAD_DIR, f"{ts}_{safe_title}.mp3")
-                            task_manager.register_task_file(user_id, mp3_path)
-                            await status_msg.edit_text(
-                                f"⚡ <b>Converting Audio to MP3 (192kbps)...</b>\n"
-                                f"<blockquote>🎬 <i>Encoding with FFmpeg...</i></blockquote>",
-                                reply_markup=get_cancel_button(user_id)
-                            )
-                            if await convert_to_mp3_ffmpeg(raw_audio_path, mp3_path):
-                                upload_file_path = mp3_path
-                                file_name = f"{safe_title}.mp3"
+                        audio_tracker = ProgressTracker(status_msg, f"🎵 [2/3] Audio Track", user_id=user_id)
+                        await download_file(audio_url, raw_audio_path, audio_tracker, user_id=user_id)
 
                         if task_manager.is_cancelled(user_id):
                             raise TaskCancelledException()
 
-                        file_size_bytes = os.path.getsize(upload_file_path)
-                        file_size_human = format_size(file_size_bytes)
-                        upload_tracker = ProgressTracker(status_msg, f"📤 Uploading Audio to Telegram: {title}", user_id=user_id)
-                        async def upload_progress(current, total):
-                            if task_manager.is_cancelled(user_id):
-                                raise TaskCancelledException()
-                            await upload_tracker.update(current, total)
-
-                        caption = Script.CAPTION_TXT.format(
-                            file_name=file_name,
-                            file_size=file_size_human,
-                            provider=f"YouTube ({fmt.upper()} Audio)",
-                            deals_channel=DEALS_CHANNEL
+                        await status_msg.edit_text(
+                            f"⚡ <b>[3/3] Fast Muxing Video + Audio via FFmpeg...</b>\n"
+                            f"<blockquote>🎬 <i>Synchronizing media into single MP4 file...</i></blockquote>",
+                            reply_markup=get_cancel_button(user_id)
                         )
+                        is_muxed = await mux_media_ffmpeg(raw_video_path, raw_audio_path, muxed_path)
+                        if is_muxed:
+                            final_upload_path = muxed_path
+                            file_name = f"{safe_title}_{fmt}.mp4"
 
-                        await client.send_audio(
+                    if task_manager.is_cancelled(user_id):
+                        raise TaskCancelledException()
+
+                    meta = await get_video_metadata(final_upload_path)
+                    file_size_bytes = os.path.getsize(final_upload_path)
+                    file_size_human = format_size(file_size_bytes)
+
+                    await status_msg.edit_text(
+                        f"📤 <b>Uploading Video to Telegram:</b> <code>{file_name}</code>\n"
+                        f"💾 <b>Size:</b> <code>{file_size_human}</code>\n"
+                        f"<blockquote>⚡ <i>Streaming via 2GB MTProto engine...</i></blockquote>",
+                        reply_markup=get_cancel_button(user_id)
+                    )
+                    upload_tracker = ProgressTracker(status_msg, f"📤 Uploading: {file_name}", user_id=user_id)
+                    async def upload_progress(current, total):
+                        if task_manager.is_cancelled(user_id):
+                            raise TaskCancelledException()
+                        await upload_tracker.update(current, total)
+
+                    caption = Script.CAPTION_TXT.format(
+                        file_name=file_name,
+                        file_size=file_size_human,
+                        provider=f"YouTube ({fmt})",
+                        deals_channel=DEALS_CHANNEL
+                    )
+
+                    if meta.get("thumb"):
+                        task_manager.register_task_file(user_id, meta["thumb"])
+
+                    final_thumb_path = await get_effective_thumbnail(client, user_id, meta.get("thumb"))
+                    if final_thumb_path:
+                        task_manager.register_task_file(user_id, final_thumb_path)
+
+                    try:
+                        await client.send_video(
                             chat_id=query.message.chat.id,
-                            audio=upload_file_path,
+                            video=final_upload_path,
                             caption=caption,
-                            title=title,
-                            performer=cached.get("author") or "YouTube",
+                            duration=meta.get("duration") or 0,
+                            width=meta.get("width") or 1280,
+                            height=meta.get("height") or 720,
+                            thumb=final_thumb_path,
+                            supports_streaming=True,
                             progress=upload_progress
                         )
-                        db_log_download(user_id, "YouTube Audio", file_name, file_size_human)
-                        await status_msg.delete()
-
-                        elapsed_sec = int(time.time() - task_start_time)
-                        dur_str = f"{elapsed_sec}s" if elapsed_sec < 60 else f"{elapsed_sec // 60}m {elapsed_sec % 60}s"
-                        await send_log(
-                            client,
-                            Script.LOG_TASK_COMPLETED_TXT.format(
-                                user_id=user_id,
-                                name=user_name,
-                                provider="YouTube (Audio)",
-                                file_name=file_name,
-                                file_size=file_size_human,
-                                duration=dur_str,
-                                timestamp=datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
-                            )
+                    except Exception:
+                        await client.send_document(
+                            chat_id=query.message.chat.id,
+                            document=final_upload_path,
+                            caption=caption,
+                            progress=upload_progress
                         )
 
-                    else:
-                        v_ext = selected.get("ext") or "mp4"
-                        raw_video_path = os.path.join(DOWNLOAD_DIR, f"{ts}_v_{safe_title}.{v_ext}")
-                        muxed_path = os.path.join(DOWNLOAD_DIR, f"{ts}_{safe_title}_{fmt}.mp4")
-                        task_manager.register_task_file(user_id, raw_video_path)
-                        task_manager.register_task_file(user_id, muxed_path)
+                    db_log_download(user_id, "YouTube Video", file_name, file_size_human)
+                    await status_msg.delete()
 
-                        await status_msg.edit_text(
-                            f"⏬ <b>[1/3] Downloading Video Track:</b> <code>{title}</code>\n"
-                            f"📦 <b>Quality:</b> <code>{fmt}</code>\n"
-                            f"<blockquote>⚡ <i>Fetching adaptive video stream from ytultra...</i></blockquote>",
-                            reply_markup=get_cancel_button(user_id)
-                        )
-                        video_tracker = ProgressTracker(status_msg, f"⏬ [1/3] Video Track: {fmt}", user_id=user_id)
-                        await download_file(video_url, raw_video_path, video_tracker, user_id=user_id)
-
-                        final_upload_path = raw_video_path
-                        file_name = f"{safe_title}_{fmt}.{v_ext}"
-
-                        if audio_url:
-                            raw_audio_path = os.path.join(DOWNLOAD_DIR, f"{ts}_a_{safe_title}.m4a")
-                            task_manager.register_task_file(user_id, raw_audio_path)
-                            await status_msg.edit_text(
-                                f"🎵 <b>[2/3] Downloading High-Quality Audio Track...</b>\n"
-                                f"<blockquote>⚡ <i>Fetching synchronized audio stream...</i></blockquote>",
-                                reply_markup=get_cancel_button(user_id)
-                            )
-                            audio_tracker = ProgressTracker(status_msg, f"🎵 [2/3] Audio Track", user_id=user_id)
-                            await download_file(audio_url, raw_audio_path, audio_tracker, user_id=user_id)
-
-                            if task_manager.is_cancelled(user_id):
-                                raise TaskCancelledException()
-
-                            await status_msg.edit_text(
-                                f"⚡ <b>[3/3] Fast Muxing Video + Audio via FFmpeg...</b>\n"
-                                f"<blockquote>🎬 <i>Synchronizing media into single MP4 file...</i></blockquote>",
-                                reply_markup=get_cancel_button(user_id)
-                            )
-                            is_muxed = await mux_media_ffmpeg(raw_video_path, raw_audio_path, muxed_path)
-                            if is_muxed:
-                                final_upload_path = muxed_path
-                                file_name = f"{safe_title}_{fmt}.mp4"
-
-                        if task_manager.is_cancelled(user_id):
-                            raise TaskCancelledException()
-
-                        file_size_bytes = os.path.getsize(final_upload_path)
-                        file_size_human = format_size(file_size_bytes)
-                        upload_tracker = ProgressTracker(status_msg, f"📤 Uploading to Telegram via MTProto: {title}", user_id=user_id)
-                        async def upload_progress(current, total):
-                            if task_manager.is_cancelled(user_id):
-                                raise TaskCancelledException()
-                            await upload_tracker.update(current, total)
-
-                        caption = Script.CAPTION_TXT.format(
+                    elapsed_sec = int(time.time() - task_start_time)
+                    dur_str = f"{elapsed_sec}s" if elapsed_sec < 60 else f"{elapsed_sec // 60}m {elapsed_sec % 60}s"
+                    await send_log(
+                        client,
+                        Script.LOG_TASK_COMPLETED_TXT.format(
+                            user_id=user_id,
+                            name=user_name,
+                            provider=f"YouTube ({fmt})",
                             file_name=file_name,
                             file_size=file_size_human,
-                            provider=f"YouTube ({fmt} • ytultra Muxed)",
-                            deals_channel=DEALS_CHANNEL
+                            duration=dur_str,
+                            timestamp=datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
                         )
+                    )
 
-                        # Video Metadata & Custom Thumbnail Integration
-                        meta = await get_video_metadata(final_upload_path)
-                        if meta.get("thumb"):
-                            task_manager.register_task_file(user_id, meta["thumb"])
-
-                        final_thumb_path = await get_effective_thumbnail(client, user_id, meta.get("thumb"))
-                        if final_thumb_path:
-                            task_manager.register_task_file(user_id, final_thumb_path)
-
-                        try:
-                            await client.send_video(
-                                chat_id=query.message.chat.id,
-                                video=final_upload_path,
-                                caption=caption,
-                                duration=meta.get("duration") or 0,
-                                width=meta.get("width") or 1280,
-                                height=meta.get("height") or 720,
-                                thumb=final_thumb_path,
-                                supports_streaming=True,
-                                progress=upload_progress
-                            )
-                        except Exception:
-                            await client.send_document(
-                                chat_id=query.message.chat.id,
-                                document=final_upload_path,
-                                caption=caption,
-                                progress=upload_progress
-                            )
-
-                        db_log_download(user_id, "YouTube Video", file_name, file_size_human)
-                        await status_msg.delete()
-
-                        elapsed_sec = int(time.time() - task_start_time)
-                        dur_str = f"{elapsed_sec}s" if elapsed_sec < 60 else f"{elapsed_sec // 60}m {elapsed_sec % 60}s"
-                        await send_log(
-                            client,
-                            Script.LOG_TASK_COMPLETED_TXT.format(
-                                user_id=user_id,
-                                name=user_name,
-                                provider=f"YouTube ({fmt})",
-                                file_name=file_name,
-                                file_size=file_size_human,
-                                duration=dur_str,
-                                timestamp=datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
-                            )
-                        )
-
-                except TaskCancelledException:
-                    print(f"[TASK CANCELLED] User {user_id} cancelled YouTube {fmt} task.")
-                    try:
-                        await status_msg.edit_text(
-                            "🚫 <b>ᴛᴀsᴋ ᴄᴀɴᴄᴇʟʟᴇᴅ!</b>\n\n<blockquote>🗑️ <i>All downloaded data & storage files have been wiped completely.</i></blockquote>",
-                            parse_mode=enums.ParseMode.HTML
-                        )
-                    except Exception:
-                        pass
-                except Exception as e:
+            except TaskCancelledException:
+                print(f"[TASK CANCELLED] User {user_id} cancelled YouTube {fmt} task.")
+                try:
+                    await status_msg.edit_text(
+                        "🚫 <b>ᴛᴀsᴋ ᴄᴀɴᴄᴇʟʟᴇᴅ!</b>\n\n<blockquote>🗑️ <i>All downloaded data & storage files have been wiped completely.</i></blockquote>",
+                        parse_mode=enums.ParseMode.HTML
+                    )
+                except Exception:
+                    pass
+            except Exception as e:
+                print(f"[YOUTUBE DOWNLOAD ERROR] User {user_id}: {e}")
+                try:
                     await status_msg.edit_text(
                         f"❌ <b>Download Error:</b> <code>{str(e)}</code>\n\n"
                         f"🔗 <b>Direct Video Link:</b> <a href='{video_url}'>Click here</a>"
                     )
-                finally:
-                    # COMPLETE STORAGE CLEAR ON HOSTING SERVER
-                    task_manager.cleanup_user_files(user_id)
-                    await task_manager.release_slot(user_id)
+                except Exception:
+                    pass
+            finally:
+                # COMPLETE STORAGE CLEAR ON HOSTING SERVER
+                task_manager.cleanup_user_files(user_id)
+                await task_manager.release_slot(user_id)
             return
 
         # 3. Menu Navigation
