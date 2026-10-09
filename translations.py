@@ -3,7 +3,7 @@
 # 🌐 Developer URL        : https://t.me/Sunil_Sharma_2_0_Bot (@Sunil_Sharma_2_0_Bot)
 # 📢 Telegram Channel     : https://t.me/SSBotsUpdates (@SSBotsUpdates)
 # 📺 YouTube Channel      : https://www.youtube.com/@SunilWebTricks (SunilWebTricks)
-# 💬 Ask Doubt / Contact   : @Sunil_Sharma_2_0_Bot
+# 💬 Support Chat         : @Sunil_Sharma_2_0_Bot
 # ==============================================================================
 
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
@@ -18,156 +18,254 @@ CHANNEL_URL = getattr(config, "CHANNEL_URL", "https://t.me/SSBotsUpdates")
 YOUTUBE_URL = getattr(config, "YOUTUBE_URL", "https://www.youtube.com/@SunilWebTricks")
 SUPPORT_CHAT = getattr(config, "SUPPORT_CHAT", "Sunil_Sharma_2_0_Bot")
 OWNER_USERNAME = getattr(config, "OWNER_USERNAME", "Sunil_Sharma_2_0_Bot")
+START_PIC = getattr(config, "START_PIC", "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop")
 
 class Script:
-    START_TXT = """<blockquote><b>👋 𝐇ᴇʟʟᴏ {} ! 🌺</b></blockquote>
+    START_PIC = START_PIC
+    START_TXT = """<blockquote><b>👋 ʜᴇʟʟᴏ {} ! 🌺</b></blockquote>
 
-🤖 <b>𝐈 𝐀ᴍ 𝐓ʜᴇ 𝐅ᴀsᴛᴇsᴛ 𝐓ᴇʀᴀ𝐁ᴏx, 𝐃ɪsᴋᴡᴀʟᴀ & 𝐘ᴏᴜ𝐓ᴜʙᴇ 𝐃ᴏᴡɴʟᴏᴀᴅᴇʀ ⚡</b>
+🤖 <b>ɪ ᴀᴍ ᴛʜᴇ ғᴀsᴛᴇsᴛ ᴛᴇʀᴀʙᴏx, ᴅɪsᴋᴡᴀʟᴀ & ʏᴏᴜᴛᴜʙᴇ ᴅᴏᴡɴʟᴏᴀᴅᴇʀ ⚡</b>
 
-📁 <b>𝐒ᴇɴᴅ 𝐌ᴇ 𝐀ɴʏ 𝐒ᴜᴘᴘᴏʀᴛᴇᴅ 𝐋ɪɴᴋ, 𝐈 𝐖ɪʟʟ :</b>
-• 🔍 <b>𝐈ɴsᴛᴀɴᴛʟʏ 𝐃ᴇᴛᴇᴄᴛ & 𝐄xᴛʀᴀᴄᴛ 𝐓ʜᴇ 𝐅ɪʟᴇ</b>
-• ⏬ <b>𝐃ᴏᴡɴʟᴏᴀᴅ 𝐀ᴛ 𝐔ʟᴛʀᴀ 𝐇ɪɢʜ 𝐒ᴘᴇᴇᴅ</b>
-• 📤 <b>𝐔ᴘʟᴏᴀᴅ 𝐃ɪʀᴇᴄᴛʟʏ 𝐓ᴏ 𝐓ᴇʟᴇɢʀᴀᴍ (𝐔ᴘ 𝐓ᴏ 𝟐𝐆𝐁) 🚀</b>
+📁 <b>sᴇɴᴅ ᴍᴇ ᴀɴʏ sᴜᴘᴘᴏʀᴛᴇᴅ ʟɪɴᴋ, ɪ ᴡɪʟʟ :</b>
+• 🔍 <b>ɪɴsᴛᴀɴᴛʟʏ ᴅᴇᴛᴇᴄᴛ & ᴇxᴛʀᴀᴄᴛ ᴛʜᴇ ғɪʟᴇ</b>
+• ⏬ <b>ᴅᴏᴡɴʟᴏᴀᴅ ᴀᴛ ᴜʟᴛʀᴀ ʜɪɢʜ sᴘᴇᴇᴅ</b>
+• 📤 <b>ᴜᴘʟᴏᴀᴅ ᴅɪʀᴇᴄᴛʟʏ ᴛᴏ ᴛᴇʟᴇɢʀᴀᴍ (ᴜᴘ ᴛᴏ 2ɢʙ) 🚀</b>
 
-━༻« ★ <b>𝐒ᴘᴇᴄɪᴀʟ 𝐅ᴇᴀᴛᴜʀᴇs</b> ★ »༺━
-<blockquote>• <b>𝐔ɴʟɪᴍɪᴛᴇᴅ 𝟐𝐆𝐁 𝐌𝐓𝐏ʀᴏᴛᴏ 𝐔ᴘʟᴏᴀᴅs</b> 
-• <b>𝐒ᴜᴘᴘᴏʀᴛs 𝐀ʟʟ 𝟐𝟎+ 𝐓ᴇʀᴀ𝐁ᴏx 𝐌ɪʀʀᴏʀ 𝐃ᴏᴍᴀɪɴs</b>
-• <b>𝐘ᴏᴜ𝐓ᴜʙᴇ 𝐕ɪᴅᴇᴏ (𝟑𝟔𝟎𝐩, 𝟕𝟐𝟎𝐩, 𝟏𝟎𝟖𝟎𝐩) & 𝐌𝐏𝟑 𝐀ᴜᴅɪᴏ</b>
-• <b>𝐃ɪsᴋᴡᴀʟᴀ 𝐕ɪᴅᴇᴏ 𝐒ᴛʀᴇᴀᴍ 𝐃ᴏᴡɴʟᴏᴀᴅᴇʀ</b>
-• <b>𝐋ɪᴠᴇ 𝐃ᴏᴡɴʟᴏᴀᴅ & 𝐔ᴘʟᴏᴀᴅ 𝐏ʀᴏɢʀᴇss 𝐁ᴀʀs</b></blockquote>
+━༻« ★ <b>sᴘᴇᴄɪᴀʟ ғᴇᴀᴛᴜʀᴇs</b> ★ »༺━
+<blockquote>• <b>ᴜɴʟɪᴍɪᴛᴇᴅ 2ɢʙ ᴍᴛᴘʀᴏᴛᴏ ᴜᴘʟᴏᴀᴅs</b> 
+• <b>sᴜᴘᴘᴏʀᴛs ᴀʟʟ 20+ ᴛᴇʀᴀʙᴏx ᴍɪʀʀᴏʀ ᴅᴏᴍᴀɪɴs</b>
+• <b>ʏᴏᴜᴛᴜʙᴇ ᴠɪᴅᴇᴏ (360ᴘ, 720ᴘ, 1080ᴘ) & ᴍᴘ3 ᴀᴜᴅɪᴏ</b>
+• <b>ᴅɪsᴋᴡᴀʟᴀ ᴠɪᴅᴇᴏ sᴛʀᴇᴀᴍ ᴅᴏᴡɴʟᴏᴀᴅᴇʀ</b>
+• <b>ʟɪᴠᴇ ᴅᴏᴡɴʟᴏᴀᴅ & ᴜᴘʟᴏᴀᴅ ᴘʀᴏɢʀᴇss ʙᴀʀs</b></blockquote>
 
-⭐ <b>𝐏ᴏᴡᴇʀᴇᴅ 𝐁ʏ <a href='https://t.me/SSBotsUpdates'>★彡 🅂🅂🄱🄾🅃🅂 彡★</a></b>"""
+⭐ <b>ᴘᴏᴡᴇʀᴇᴅ ʙʏ <a href='https://t.me/SSBotsUpdates'>★彡 🅂🅂🄱🄾🅃🅂 彡★</a></b>"""
 
-    HELP_TXT = """<blockquote><b>📘 ── 𝐇ᴇʟᴘ & 𝐔sᴀɢᴇ 𝐆ᴜɪᴅᴇ ── 📖</b></blockquote>
+    HELP_TXT = """<blockquote><b>📘 ── ʜᴇʟᴘ & ᴜsᴀɢᴇ ɢᴜɪᴅᴇ ── 📖</b></blockquote>
 
-💫 <b>𝐇ᴏᴡ 𝐓ᴏ 𝐃ᴏᴡɴʟᴏᴀᴅ & 𝐑ᴇᴄᴇɪᴠᴇ 𝐅ɪʟᴇs :</b>
+💫 <b>ʜᴏᴡ ᴛᴏ ᴅᴏᴡɴʟᴏᴀᴅ & ʀᴇᴄᴇɪᴠᴇ ғɪʟᴇs :</b>
 
-🚀 <b>𝐒ᴛᴇᴘ 𝟏 : 𝐒ᴇɴᴅ 𝐋ɪɴᴋ</b>
-<blockquote>• 𝐂ᴏᴘʏ 𝐚ɴ𝐲 <b>𝐓ᴇʀᴀ𝐁ᴏx</b> (terabox.com, 1024terabox.com, etc.), <b>𝐘ᴏᴜ𝐓ᴜʙᴇ</b>, 𝐨𝐫 <b>𝐃ɪsᴋᴡᴀʟᴀ</b> 𝐥𝐢𝐧𝐤.
-• 𝐏ᴀsᴛᴇ 𝐢𝐭 𝐝ɪʀᴇ𝐜ᴛʟ𝐲 𝐢𝐧 𝐭𝐡𝐢𝐬 𝐜𝐡𝐚𝐭.</blockquote>
+🚀 <b>sᴛᴇᴘ 1 : sᴇɴᴅ ʟɪɴᴋ</b>
+<blockquote>• ᴄᴏᴘʏ ᴀɴʏ <b>ᴛᴇʀᴀʙᴏx</b> (terabox.com, 1024terabox.com, etc.), <b>ʏᴏᴜᴛᴜʙᴇ</b>, ᴏʀ <b>ᴅɪsᴋᴡᴀʟᴀ</b> ʟɪɴᴋ.
+• ᴘᴀsᴛᴇ ɪᴛ ᴅɪʀᴇᴄᴛʟʏ ɪɴ ᴛʜɪs ᴄʜᴀᴛ.</blockquote>
 
-⚡ <b>𝐒ᴛᴇᴘ 𝟐 : 𝐐ᴜᴀʟɪᴛʏ 𝐒ᴇʟᴇᴄᴛɪᴏɴ (𝐅ᴏʀ 𝐘ᴏᴜ𝐓ᴜʙᴇ)</b>
-<blockquote>• 𝐅𝐨𝐫 𝐘𝐨𝐮𝐓𝐮𝐛𝐞, 𝐭𝐡𝐞 𝐛𝐨𝐭 𝐰𝐢𝐥𝐥 𝐟𝐞𝐭𝐜𝐡 𝐚𝐥𝐥 𝐯𝐢𝐝𝐞𝐨 (𝟏𝟎𝟖𝟎𝐩, 𝟕𝟐𝟎𝐩, 𝟒𝟖𝟎𝐩, 𝟑𝟔𝟎𝐩) & 𝐌𝐏𝟑 𝐪𝐮𝐚𝐥𝐢𝐭𝐢𝐞𝐬.
-• 𝐓𝐚𝐩 𝐲𝐨𝐮𝐫 𝐝𝐞𝐬𝐢𝐫𝐞𝐝 𝐪𝐮𝐚𝐥𝐢𝐭𝐲 𝐛𝐮𝐭𝐭𝐨𝐧!</blockquote>
+⚡ <b>sᴛᴇᴘ 2 : ǫᴜᴀʟɪᴛʏ sᴇʟᴇᴄᴛɪᴏɴ (ғᴏʀ ʏᴏᴜᴛᴜʙᴇ)</b>
+<blockquote>• ғᴏʀ ʏᴏᴜᴛᴜʙᴇ, ᴛʜᴇ ʙᴏᴛ ᴡɪʟʟ ᴇxᴛʀᴀᴄᴛ ᴀʟʟ ᴠɪᴅᴇᴏ (1080ᴘ, 720ᴘ, 480ᴘ, 360ᴘ) & ᴍᴘ3 ᴀᴜᴅɪᴏ ғᴏʀᴍᴀᴛs.
+• ᴛᴀᴘ ʏᴏᴜʀ ᴅᴇsɪʀᴇᴅ ǫᴜᴀʟɪᴛʏ ʙᴜᴛᴛᴏɴ!</blockquote>
 
-📤 <b>𝐒ᴛᴇᴘ 𝟑 : 𝐓ᴇʟᴇɢʀᴀᴍ 𝐔ᴘʟᴏᴀᴅ</b>
-<blockquote>• 𝐁ᴏ𝐭 𝐰𝐢𝐥𝐥 𝐝𝐨𝐰𝐧𝐥𝐨𝐚𝐝 𝐚𝐧𝐝 𝐮𝐩𝐥𝐨𝐚𝐝 𝐭𝐡𝐞 𝐯𝐢𝐝𝐞𝐨/𝐝𝐨𝐜𝐮𝐦𝐞𝐧𝐭 𝐝𝐢𝐫ᴇ𝐜ᴛ𝐥𝐲 𝐭𝐨 𝐲𝐨𝐮 (𝐮𝐩 𝐭𝐨 <b>𝟐 𝐆𝐁</b>).
-• 𝐕𝐢𝐝𝐞𝐨𝐬 𝐚𝐫𝐞 𝐬𝐞𝐧𝐭 𝐰𝐢𝐭𝐡 𝐬𝐭𝐫𝐞𝐚𝐦𝐢𝐧𝐠 𝐬𝐮𝐩𝐩𝐨𝐫𝐭!</blockquote>
+📤 <b>sᴛᴇᴘ 3 : ᴛᴇʟᴇɢʀᴀᴍ ᴜᴘʟᴏᴀᴅ</b>
+<blockquote>• ᴛʜᴇ ʙᴏᴛ ᴡɪʟʟ ᴅᴏᴡɴʟᴏᴀᴅ ᴀɴᴅ ᴜᴘʟᴏᴀᴅ ᴛʜᴇ ᴍᴇᴅɪᴀ ᴅɪʀᴇᴄᴛʟʏ ᴛᴏ ʏᴏᴜ (ᴜᴘ ᴛᴏ <b>2 ɢʙ</b>).
+• ᴠɪᴅᴇᴏs ᴀʀᴇ ᴜᴘʟᴏᴀᴅᴇᴅ ᴡɪᴛʜ ғᴜʟʟ ᴅᴜʀᴀᴛɪᴏɴ & sᴛʀᴇᴀᴍɪɴɢ sᴜᴘᴘᴏʀᴛ!</blockquote>
 
-<b><blockquote>⚠️ 𝐑ᴇᴘᴏʀᴛ 𝐈ssᴜᴇ: <a href='https://t.me/Sunil_Sharma_2_0_Bot'>𓆩Ꞩᵾꞥīł Ꞩħⱥɍᵯⱥ ƻ.Ꝋ [🇳🇵]𓆪</a></b></blockquote>"""
+<blockquote>⚠️ <b>ʀᴇᴘᴏʀᴛ ɪssᴜᴇ: <a href='https://t.me/Sunil_Sharma_2_0_Bot'>𓆩Ꞩᵾꞥīł Ꞩħⱥɍᵯⱥ ƻ.Ꝋ [🇳🇵]𓆪</a></b></blockquote>"""
 
-    ABOUT_TXT = """<blockquote><b>🌟 ── 𝐀ʙᴏᴜᴛ 𝐌ᴇ • 𝐃ᴏᴡɴʟᴏᴀᴅᴇʀ ── 🌟</b></blockquote>
+    ABOUT_TXT = """<blockquote><b>🌟 ── ᴀʙᴏᴜᴛ ᴍᴇ • ᴅᴏᴡɴʟᴏᴀᴅᴇʀ ── 🌟</b></blockquote>
 
-📌 <b>𝐈 𝐀ᴍ 𝐘ᴏᴜʀ 𝐔ʟᴛɪᴍᴀ𝐓ᴇ 𝐓ᴇʀᴀ𝐁ᴏx, 𝐃ɪsᴋᴡᴀʟᴀ & 𝐘ᴏᴜ𝐓ᴜʙᴇ 𝐃ᴏᴡɴʟᴏᴀᴅᴇʀ ⚡</b>
+📌 <b>ɪ ᴀᴍ ʏᴏᴜʀ ᴜʟᴛɪᴍᴀᴛᴇ ᴛᴇʀᴀʙᴏx, ᴅɪsᴋᴡᴀʟᴀ & ʏᴏᴜᴛᴜʙᴇ ᴅᴏᴡɴʟᴏᴀᴅᴇʀ ⚡</b>
 
-‣ <b>𝐌ʏ 𝐍ᴀᴍᴇ :</b> <a href="https://t.me/{}">{}</a>
-‣ <b>𝐃ᴇᴠᴇʟᴏᴘᴇʀ :</b> <a href="https://t.me/Sunil_Sharma_2_0_Bot">𓆩Ꞩᵾꞥīł Ꞩħⱥɍᵯⱥ ƻ.Ꝋ [🇳🇵]𓆪</a>
-‣ <b>𝐔ᴘᴅᴀᴛᴇs 𝐂ʜᴀɴɴᴇʟ :</b> <a href="https://t.me/SSBotsUpdates">𝐒𝐒 𝐁ᴏᴛs 𝐔ᴘᴅᴀᴛᴇs</a>
-‣ <b>𝐘ᴏᴜ𝐓ᴜʙᴇ 𝐂ʜᴀɴɴᴇʟ :</b> <a href="https://www.youtube.com/@SunilWebTricks">SunilWebTricks</a>
-‣ <b>𝐋ᴀɴɢᴜᴀɢᴇ :</b> <a href="https://www.python.org/">𝐏ʏᴛʜᴏɴ 3.11+</a>
-‣ <b>𝐅ʀᴀᴍᴇᴡᴏʀᴋ :</b> <a href="https://docs.pyrogram.org/">𝐏ʏʀᴏɢʀᴀᴍ &amp; 𝐓ɢ𝐂ʀʏᴘᴛᴏ</a>
-‣ <b>𝐔ᴘʟᴏᴀᴅ 𝐋ɪᴍɪᴛ :</b> <code>𝟐,𝟎𝟒𝟖 𝐌𝐁 (𝟐 𝐆𝐁 𝐌𝐓𝐏ʀᴏᴛᴏ)</code>
-‣ <b>𝐁ᴜɪʟᴅ 𝐒ᴛᴀᴛᴜs :</b> <code>v3.5.0 [ 𝐒ᴛᴀʙʟᴇ &amp; 𝐎ᴘᴛɪᴍɪᴢᴇᴅ ]</code>
+‣ <b>ᴍʏ ɴᴀᴍᴇ :</b> <a href="https://t.me/{}">{}</a>
+‣ <b>ᴅᴇᴠᴇʟᴏᴘᴇʀ :</b> <a href="https://t.me/Sunil_Sharma_2_0_Bot">𓆩Ꞩᵾꞥīł Ꞩħⱥɍᵯⱥ ƻ.Ꝋ [🇳🇵]𓆪</a>
+‣ <b>ᴜᴘᴅᴀᴛᴇs ᴄʜᴀɴɴᴇʟ :</b> <a href="https://t.me/SSBotsUpdates">ss ʙᴏᴛs ᴜᴘᴅᴀᴛᴇs</a>
+‣ <b>ʏᴏᴜᴛᴜʙᴇ ᴄʜᴀɴɴᴇʟ :</b> <a href="https://www.youtube.com/@SunilWebTricks">SunilWebTricks</a>
+‣ <b>ʟᴀɴɢᴜᴀɢᴇ :</b> <a href="https://www.python.org/">ᴘʏᴛʜᴏɴ 3.10+</a>
+‣ <b>ғʀᴀᴍᴇᴡᴏʀᴋ :</b> <a href="https://docs.pyrogram.org/">ᴘʏʀᴏɢʀᴀᴍ &amp; ᴛɢᴄʀʏᴘᴛᴏ</a>
+‣ <b>ᴜᴘʟᴏᴀᴅ ʟɪᴍɪᴛ :</b> <code>2,048 ᴍʙ (2 ɢʙ ᴍᴛᴘʀᴏᴛᴏ)</code>
+‣ <b>ʙᴜɪʟᴅ sᴛᴀᴛᴜs :</b> <code>v3.5.0 [ sᴛᴀʙʟᴇ &amp; ᴏᴘᴛɪᴍɪᴢᴇᴅ ]</code>
 
-<i>💖 𝗜ꜰ 𝗬ᴏᴜ 𝗙ɪɴᴅ 𝗠ᴇ 𝗨ꜱᴇꜰᴜʟ, 𝗣ʟᴇᴀꜱᴇ 𝗖ᴏɴꜱɪᴅᴇʀ 𝗦ʜᴀʀɪɴɢ 𝗠ᴇ 𝗪ɪᴛʜ 𝗬ᴏᴜʀ 𝗙ʀɪᴇɴᴅꜱ!</i>"""
+<i>💖 ɪғ ʏᴏᴜ ғɪɴᴅ ᴍᴇ ᴜsᴇғᴜʟ, ᴘʟᴇᴀsᴇ ᴄᴏɴsɪᴅᴇʀ sʜᴀʀɪɴɢ ᴍᴇ ᴡɪᴛʜ ʏᴏᴜʀ ғʀɪᴇɴᴅs!</i>"""
 
-    FORCE_SUB_TXT = """<blockquote><b>🔐 ── 𝐕ᴇʀɪғɪᴄᴀᴛɪᴏɴ 𝐑ᴇǫᴜɪʀᴇᴅ ── 🔐</b></blockquote>
+    FORCE_SUB_TXT = """<blockquote><b>🔐 ── ᴠᴇʀɪғɪᴄᴀᴛɪᴏɴ ʀᴇǫᴜɪʀᴇᴅ ── 🔐</b></blockquote>
 
-👋 <b>𝐇ᴇʟʟᴏ {} ! 🌺</b>
+👋 <b>ʜᴇʟʟᴏ {} ! 🌺</b>
 
-😇 <b>𝐘ᴏᴜ 𝐌ᴜsᴛ 𝐉ᴏɪɴ 𝐁ᴏᴛʜ 𝐎ᴜʀ 𝐂ʜᴀɴɴᴇʟs 𝐓ᴏ 𝐔sᴇ 𝐓ʜɪs 𝐁ᴏᴛ :</b>
+😇 <b>ʏᴏᴜ ᴍᴜsᴛ ᴊᴏɪɴ ʙᴏᴛʜ ᴏᴜʀ ᴄʜᴀɴɴᴇʟs ᴛᴏ ᴜsᴇ ᴛʜɪs ʙᴏᴛ :</b>
 
-📢 <b>𝟏. 𝐁ᴏᴛ 𝐔ᴘᴅᴀᴛᴇs 𝐂ʜᴀɴɴᴇʟ</b>
-🛍️ <b>𝟐. 𝐋ᴏᴏᴛ 𝐃ᴇᴀʟs 𝐂ʜᴀɴɴᴇʟ</b>
+📢 <b>1. ʙᴏᴛ ᴜᴘᴅᴀᴛᴇs ᴄʜᴀɴɴᴇʟ</b>
+🛍️ <b>2. ʟᴏᴏᴛ ᴅᴇᴀʟs ᴄʜᴀɴɴᴇʟ</b>
 
-👉 <i>𝐂ʟɪᴄᴋ 𝐁ᴏᴛ𝐡 ‘𝐉ᴏɪɴ’ 𝐁ᴜᴛᴛᴏɴs 𝐁ᴇʟᴏᴡ, 𝐓ʜᴇɴ 𝐏ʀᴇss ‘✅ 𝐕ᴇʀɪғʏ’ 𝐓ᴏ 𝐔ɴʟᴏᴄᴋ!</i>"""
+👉 <i>ᴄʟɪᴄᴋ ʙᴏᴛʜ ‘ᴊᴏɪɴ’ ʙᴜᴛᴛᴏɴs ʙᴇʟᴏᴡ, ᴛʜᴇɴ ᴛᴀᴘ ‘✅ ᴠᴇʀɪғʏ’ ᴛᴏ ᴜɴʟᴏᴄᴋ!</i>"""
 
-    YT_WAIT_TXT = """<blockquote><b>⏳ ── 𝐄xᴛʀᴀᴄᴛɪɴɢ 𝐘ᴏᴜ𝐓ᴜʙᴇ 𝐐ᴜᴀʟɪᴛɪᴇs ── 🎬</b></blockquote>
+    YT_WAIT_TXT = """<blockquote><b>⏳ ── ᴇxᴛʀᴀᴄᴛɪɴɢ ʏᴏᴜᴛᴜʙᴇ ǫᴜᴀʟɪᴛɪᴇs ── 🎬</b></blockquote>
 
-🔍 <b>𝐋ᴏᴀᴅɪɴɢ 𝐀ʟʟ 𝐕ɪᴅᴇᴏ & 𝐀ᴜᴅɪᴏ 𝐅ᴏʀᴍᴀᴛs...</b>
+🔍 <b>ʟᴏᴀᴅɪɴɢ ᴀʟʟ ᴠɪᴅᴇᴏ & ᴀᴜᴅɪᴏ ғᴏʀᴍᴀᴛs...</b>
 
-<blockquote>⚡ <i>𝐏𝐥𝐞𝐚𝐬𝐞 𝐰𝐚𝐢𝐭 𝟒𝟎-𝟓𝟎 𝐬𝐞𝐜𝐨𝐧𝐝𝐬. 𝐎𝐮𝐫 𝐡𝐢𝐠𝐡-𝐬𝐩𝐞𝐞𝐝 𝐞𝐧𝐠𝐢𝐧𝐞 𝐢𝐬 𝐞𝐱𝐭𝐫𝐚𝐜𝐭𝐢𝐧𝐠 𝐚𝐥𝐥 𝐯𝐞𝐫𝐢𝐟𝐢𝐞𝐝 𝐪𝐮𝐚𝐥𝐢𝐭𝐢𝐞𝐬 (𝟏𝟎𝟖𝟎𝐩, 𝟕𝟐𝟎𝐩, 𝟒𝟖𝟎𝐩, 𝟑𝟔𝟎𝐩 &amp; 𝐌𝐏𝟑)...</i></blockquote>"""
+<blockquote>⚡ <i>ᴘʟᴇᴀsᴇ ᴡᴀɪᴛ ᴀ ғᴇᴡ sᴇᴄᴏɴᴅs. ᴏᴜʀ ʜɪɢʜ-sᴘᴇᴇᴅ ᴇɴɢɪɴᴇ ɪs ᴇxᴛʀᴀᴄᴛɪɴɢ ᴀʟʟ ᴠᴇʀɪғɪᴇᴅ ǫᴜᴀʟɪᴛɪᴇs (1080ᴘ, 720ᴘ, 480ᴘ, 360ᴘ &amp; ᴍᴘ3)...</i></blockquote>"""
 
-    YT_INFO_TXT = """<blockquote><b>🎬 ── 𝐘ᴏᴜ𝐓ᴜʙᴇ 𝐃ᴏᴡɴʟᴏᴀᴅᴇʀ ── 🎬</b></blockquote>
+    YT_INFO_TXT = """<blockquote><b>🎬 ── ʏᴏᴜᴛᴜʙᴇ ᴅᴏᴡɴʟᴏᴀᴅᴇʀ ── 🎬</b></blockquote>
 
-📌 <b>𝐓ɪᴛʟᴇ :</b> <code>{title}</code>
-👤 <b>𝐂ʜᴀɴɴᴇʟ :</b> <code>{author}</code>
+📌 <b>ᴛɪᴛʟᴇ :</b> <code>{title}</code>
+👤 <b>ᴄʜᴀɴɴᴇʟ :</b> <code>{author}</code>
 
-👇 <b>𝐒ᴇʟᴇᴄᴛ 𝐀 𝐐ᴜᴀʟɪᴛʏ 𝐁ᴇʟᴏᴡ 𝐓ᴏ 𝐃ᴏᴡɴʟᴏᴀᴅ & 𝐔ᴘʟᴏᴀᴅ :</b>"""
+👇 <b>sᴇʟᴇᴄᴛ ᴀ ǫᴜᴀʟɪᴛʏ ʙᴇʟᴏᴡ ᴛᴏ ᴅᴏᴡɴʟᴏᴀᴅ & ᴜᴘʟᴏᴀᴅ :</b>"""
 
-    CAPTION_TXT = """<b>📂 𝐅ɪʟᴇɴᴀᴍᴇ :</b> <code>{file_name}</code>
-💾 <b>𝐅ɪʟᴇ 𝐒ɪᴢᴇ :</b> <code>{file_size}</code>
-🌐 <b>𝐒ᴏᴜʀᴄᴇ :</b> <code>{provider}</code>
+    CAPTION_TXT = """<b>📂 ғɪʟᴇɴᴀᴍᴇ :</b> <code>{file_name}</code>
+💾 <b>ғɪʟᴇ sɪᴢᴇ :</b> <code>{file_size}</code>
+🌐 <b>sᴏᴜʀᴄᴇ :</b> <code>{provider}</code>
 
-♻️ <b>𝐅ᴏʀ 𝐋ᴏᴏᴛ 𝐃ᴇᴀʟs 𝐎ғғᴇʀs 🔥</b>
-📌 <b>𝐉ᴏɪɴ :</b> @{deals_channel}
+♻️ <b>ғᴏʀ ʟᴏᴏᴛ ᴅᴇᴀʟs ᴏғғᴇʀs 🔥</b>
+📌 <b>ᴊᴏɪɴ :</b> @{deals_channel}
 
-<blockquote>⚡ <b>𝐔ᴘʟᴏᴀᴅᴇᴅ 𝐁ʏ <a href='https://t.me/SSBotsUpdates'>★彡 🅂🅂🄱🄾🅃🅂 彡★</a> • 𝟐𝐆𝐁 𝐌𝐓𝐏ʀᴏᴛᴏ</b></blockquote>"""
+<blockquote>⚡ <b>ᴜᴘʟᴏᴀᴅᴇᴅ ʙʏ <a href='https://t.me/SSBotsUpdates'>★彡 🅂🅂🄱🄾🅃🅂 彡★</a> • 2ɢʙ ᴍᴛᴘʀᴏᴛᴏ</b></blockquote>"""
+
+    TASK_ALREADY_RUNNING_TXT = """<blockquote>⚠️ ── <b>ᴛᴀsᴋ ᴀʟʀᴇᴀᴅʏ ʀᴜɴɴɪɴɢ</b> ── ⚠️</blockquote>
+
+🚫 <b>ʜᴇʏ {} !</b>
+ʏᴏᴜ ᴀʟʀᴇᴀᴅʏ ʜᴀᴠᴇ ᴀɴ ᴀᴄᴛɪᴠᴇ ᴅᴏᴡɴʟᴏᴀᴅ ᴛᴀsᴋ ɪɴ ᴘʀᴏɢʀᴇss. ᴏɴʟʏ <b>1 ᴛᴀsᴋ</b> ɪs ᴀʟʟᴏᴡᴇᴅ ᴀᴛ ᴀ ᴛɪᴍᴇ.
+
+<blockquote>⏳ <i>ᴘʟᴇᴀsᴇ ᴡᴀɪᴛ ғᴏʀ ʏᴏᴜʀ ᴄᴜʀʀᴇɴᴛ ᴛᴀsᴋ ᴛᴏ ᴄᴏᴍᴘʟᴇᴛᴇ ʙᴇғᴏʀᴇ sᴛᴀʀᴛɪɴɢ ᴀ ɴᴇᴡ ᴏɴᴇ!</i></blockquote>"""
+
+    TASK_COOLDOWN_TXT = """<blockquote>⏳ ── <b>ᴄᴏᴏʟᴅᴏᴡɴ ᴀᴄᴛɪᴠᴇ</b> ── ⏳</blockquote>
+
+⏰ <b>ʜᴇʏ {} !</b>
+ʏᴏᴜʀ ᴘʀᴇᴠɪᴏᴜs ᴛᴀsᴋ ᴡᴀs ᴄᴏᴍᴘʟᴇᴛᴇᴅ ʀᴇᴄᴇɴᴛʟʏ.
+
+<blockquote>🛑 <i>ᴛᴏ ᴘʀᴇᴠᴇɴᴛ sᴘᴀᴍ, ᴘʟᴇᴀsᴇ ᴡᴀɪᴛ <b>{} sᴇᴄᴏɴᴅs</b> ʙᴇғᴏʀᴇ sᴛᴀʀᴛɪɴɢ ᴀ ɴᴇᴡ ᴛᴀsᴋ! (1 ᴍɪɴ ᴄᴏᴏʟᴅᴏᴡɴ)</i></blockquote>"""
+
+    TASK_QUEUED_TXT = """<blockquote>📋 ── <b>ᴛᴀsᴋ ᴀᴅᴅᴇᴅ ᴛᴏ ǫᴜᴇᴜᴇ</b> ── ⏳</blockquote>
+
+🚦 <b>ʙᴏᴛ sʟᴏᴛs ғᴜʟʟ (3/3 ᴀᴄᴛɪᴠᴇ ᴛᴀsᴋs)!</b>
+ᴀʟʟ 3 ᴄᴏɴᴄᴜʀʀᴇɴᴛ ᴅᴏᴡɴʟᴏᴀᴅ sʟᴏᴛs ᴀʀᴇ ᴄᴜʀʀᴇɴᴛʟʏ ᴏᴄᴄᴜᴘɪᴇᴅ.
+
+📌 <b>ʏᴏᴜʀ ᴛᴀsᴋ ʜᴀs ʙᴇᴇɴ ǫᴜᴇᴜᴇᴅ:</b>
+🔢 <b>ᴘᴏsɪᴛɪᴏɴ:</b> <code>#{} ɪɴ ǫᴜᴇᴜᴇ</code>
+
+<blockquote>⚡ <i>ʏᴏᴜʀ ᴛᴀsᴋ ᴡɪʟʟ ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ sᴛᴀʀᴛ ᴀs sᴏᴏɴ ᴀs ᴀ sʟᴏᴛ ʙᴇᴄᴏᴍᴇs ғʀᴇᴇ!</i></blockquote>"""
+
+    # --- LOG CHANNEL NOTIFICATIONS (English Small Caps Bold) ---
+    LOG_BOT_STARTED_TXT = """📢 <b>[ #ʙᴏᴛ_sᴛᴀʀᴛᴇᴅ ]</b> 🚀
+
+🤖 <b>ʙᴏᴛ ɴᴀᴍᴇ :</b> {bot_name}
+🆔 <b>ʙᴏᴛ ᴜsᴇʀɴᴀᴍᴇ :</b> @{bot_username}
+👑 <b>ᴏᴡɴᴇʀ :</b> <code>{owner_id}</code>
+⚡ <b>ᴍᴀx ᴄᴏɴᴄᴜʀʀᴇɴᴛ ᴛᴀsᴋs :</b> <code>{max_tasks}</code>
+⏳ <b>ᴜsᴇʀ ᴄᴏᴏʟᴅᴏᴡɴ :</b> <code>{cooldown}s</code>
+🗄️ <b>ᴅᴀᴛᴀʙᴀsᴇ :</b> <code>{db_status}</code>
+🕒 <b>sᴛᴀʀᴛᴇᴅ ᴀᴛ :</b> <code>{timestamp}</code>
+
+<blockquote>🌟 <b>ᴇɴɢɪɴᴇ :</b> ᴘʏʀᴏɢʀᴀᴍ ᴍᴛᴘʀᴏᴛᴏ (2ɢʙ sᴜᴘᴘᴏʀᴛ)
+🌐 <b>ᴘᴏᴡᴇʀᴇᴅ ʙʏ :</b> <a href='https://t.me/SSBotsUpdates'>★彡 🅂🅂🄱🄾🅃🅂 彡★</a></blockquote>"""
+
+    LOG_NEW_USER_TXT = """👤 <b>[ #ɴᴇᴡ_ᴜsᴇʀ ]</b> 🌺
+
+🆔 <b>ᴜsᴇʀ ɪᴅ :</b> <code>{user_id}</code>
+👤 <b>ɴᴀᴍᴇ :</b> <a href='tg://user?id={user_id}'>{name}</a>
+🔖 <b>ᴜsᴇʀɴᴀᴍᴇ :</b> @{username}
+📊 <b>ᴛᴏᴛᴀʟ ᴜsᴇʀs :</b> <code>{total_users}</code>
+🕒 <b>ᴊᴏɪɴᴇᴅ ᴀᴛ :</b> <code>{timestamp}</code>"""
+
+    LOG_NEW_TASK_TXT = """📥 <b>[ #ɴᴇᴡ_ᴛᴀsᴋ ]</b> ⚡
+
+👤 <b>ᴜsᴇʀ :</b> <a href='tg://user?id={user_id}'>{name}</a> (<code>{user_id}</code>)
+🌐 <b>sᴏᴜʀᴄᴇ :</b> <code>{provider}</code>
+🔗 <b>ᴜʀʟ / ᴛɪᴛʟᴇ :</b> {link_or_title}
+🚦 <b>ǫᴜᴇᴜᴇ sᴛᴀᴛᴜs :</b> <code>{queue_status}</code>
+🕒 <b>ᴛɪᴍᴇ :</b> <code>{timestamp}</code>"""
+
+    LOG_TASK_COMPLETED_TXT = """✅ <b>[ #ᴛᴀsᴋ_ᴄᴏᴍᴘʟᴇᴛᴇᴅ ]</b> 🚀
+
+👤 <b>ᴜsᴇʀ :</b> <a href='tg://user?id={user_id}'>{name}</a> (<code>{user_id}</code>)
+🌐 <b>sᴏᴜʀᴄᴇ :</b> <code>{provider}</code>
+📂 <b>ғɪʟᴇ :</b> <code>{file_name}</code>
+💾 <b>sɪᴢᴇ :</b> <code>{file_size}</code>
+⏱️ <b>ᴛɪᴍᴇ ᴛᴀᴋᴇɴ :</b> <code>{duration}</code>
+🕒 <b>ᴄᴏᴍᴘʟᴇᴛᴇᴅ ᴀᴛ :</b> <code>{timestamp}</code>"""
+
+    LOG_USER_BANNED_TXT = """🚫 <b>[ #ᴜsᴇʀ_ʙᴀɴɴᴇᴅ ]</b> ⛔
+
+👤 <b>ʙᴀɴɴᴇᴅ ᴜsᴇʀ :</b> <a href='tg://user?id={user_id}'>{name}</a> (<code>{user_id}</code>)
+👮 <b>ʙᴀɴɴᴇᴅ ʙʏ :</b> <a href='tg://user?id={admin_id}'>{admin_name}</a> (<code>{admin_id}</code>)
+📝 <b>ʀᴇᴀsᴏɴ :</b> <code>{reason}</code>
+🕒 <b>ᴛɪᴍᴇ :</b> <code>{timestamp}</code>"""
+
+    LOG_USER_UNBANNED_TXT = """🟢 <b>[ #ᴜsᴇʀ_ᴜɴʙᴀɴɴᴇᴅ ]</b> ✨
+
+👤 <b>ᴜɴʙᴀɴɴᴇᴅ ᴜsᴇʀ :</b> <a href='tg://user?id={user_id}'>{name}</a> (<code>{user_id}</code>)
+👮 <b>ᴜɴʙᴀɴɴᴇᴅ ʙʏ :</b> <a href='tg://user?id={admin_id}'>{admin_name}</a> (<code>{admin_id}</code>)
+🕒 <b>ᴛɪᴍᴇ :</b> <code>{timestamp}</code>"""
+
+    USER_BANNED_ALERT_TXT = """<blockquote>⛔ ── <b>ᴀᴄᴄᴇss ᴅᴇɴɪᴇᴅ (ʙᴀɴɴᴇᴅ)</b> ── ⛔</blockquote>
+
+🚫 <b>ʏᴏᴜ ᴀʀᴇ ʙᴀɴɴᴇᴅ ғʀᴏᴍ ᴜsɪɴɢ ᴛʜɪs ʙᴏᴛ!</b>
+ʏᴏᴜʀ ᴀᴄᴄᴏᴜɴᴛ ʜᴀs ʙᴇᴇɴ ʀᴇsᴛʀɪᴄᴛᴇᴅ ʙʏ ᴀɴ ᴀᴅᴍɪɴɪsᴛʀᴀᴛᴏʀ.
+
+<blockquote>💬 <i>ɪғ ʏᴏᴜ ʙᴇʟɪᴇᴠᴇ ᴛʜɪs ɪs ᴀ ᴍɪsᴛᴀᴋᴇ, ᴘʟᴇᴀsᴇ ᴄᴏɴᴛᴀᴄᴛ <a href='https://t.me/Sunil_Sharma_2_0_Bot'>@Sunil_Sharma_2_0_Bot</a></i></blockquote>"""
+
+    # --- ADMIN & SUDO INTERACTION TEXTS ---
+    ADMIN_ONLY_TXT = "⛔ <b>ᴀᴄᴄᴇss ᴅᴇɴɪᴇᴅ :</b> ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ ɪs ᴏɴʟʏ ғᴏʀ ʙᴏᴛ ᴏᴡɴᴇʀ & sᴜᴅᴏ ᴀᴅᴍɪɴs!"
+    OWNER_ONLY_TXT = "👑 <b>ᴀᴄᴄᴇss ᴅᴇɴɪᴇᴅ :</b> ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ ɪs ʀᴇsᴛʀɪᴄᴛᴇᴅ ᴛᴏ ᴛʜᴇ ʙᴏᴛ ᴏᴡɴᴇʀ ᴏɴʟʏ!"
+    BAN_USAGE_TXT = "📖 <b>ᴜsᴀɢᴇ :</b> <code>/ban &lt;user_id&gt; [optional reason]</code> ᴏʀ ʀᴇᴘʟʏ ᴛᴏ ᴀ ᴜsᴇʀ's ᴍᴇssᴀɢᴇ ᴡɪᴛʜ <code>/ban [reason]</code>"
+    UNBAN_USAGE_TXT = "📖 <b>ᴜsᴀɢᴇ :</b> <code>/unban &lt;user_id&gt;</code> ᴏʀ ʀᴇᴘʟʏ ᴛᴏ ᴀ ᴜsᴇʀ's ᴍᴇssᴀɢᴇ ᴡɪᴛʜ <code>/unban</code>"
+    ADDSUDO_USAGE_TXT = "📖 <b>ᴜsᴀɢᴇ :</b> <code>/addsudo &lt;user_id&gt;</code> ᴏʀ ʀᴇᴘʟʏ ᴛᴏ ᴀ ᴜsᴇʀ's ᴍᴇssᴀɢᴇ ᴡɪᴛʜ <code>/addsudo</code>"
+    DELSUDO_USAGE_TXT = "📖 <b>ᴜsᴀɢᴇ :</b> <code>/delsudo &lt;user_id&gt;</code> ᴏʀ ʀᴇᴘʟʏ ᴛᴏ ᴀ ᴜsᴇʀ's ᴍᴇssᴀɢᴇ ᴡɪᴛʜ <code>/delsudo</code>"
+    USER_BANNED_SUCCESS = "🚫 <b>ᴜsᴇʀ ʙᴀɴɴᴇᴅ sᴜᴄᴄᴇssғᴜʟʟʏ!</b>\n\n🆔 <b>ᴜsᴇʀ ɪᴅ :</b> <code>{user_id}</code>\n📝 <b>ʀᴇᴀsᴏɴ :</b> <code>{reason}</code>"
+    USER_UNBANNED_SUCCESS = "🟢 <b>ᴜsᴇʀ ᴜɴʙᴀɴɴᴇᴅ sᴜᴄᴄᴇssғᴜʟʟʏ!</b>\n\n🆔 <b>ᴜsᴇʀ ɪᴅ :</b> <code>{user_id}</code>"
+    ALREADY_BANNED = "⚠️ <b>ᴜsᴇʀ <code>{user_id}</code> ɪs ᴀʟʀᴇᴀᴅʏ ʙᴀɴɴᴇᴅ!</b>"
+    NOT_BANNED = "⚠️ <b>ᴜsᴇʀ <code>{user_id}</code> ɪs ɴᴏᴛ ʙᴀɴɴᴇᴅ!</b>"
+    CANNOT_BAN_ADMIN = "⚠️ <b>ʏᴏᴜ ᴄᴀɴɴᴏᴛ ʙᴀɴ ᴀ sᴜᴅᴏ ᴀᴅᴍɪɴ ᴏʀ ᴛʜᴇ ʙᴏᴛ ᴏᴡɴᴇʀ!</b>"
 
 
 def get_start_buttons(bot_username: str):
     return InlineKeyboardMarkup([
         [
-            InlineKeyboardButton('📌 𝐇ᴇʟᴘ', callback_data='help'),
-            InlineKeyboardButton('💝 𝐀ʙᴏᴜᴛ', callback_data='about')
+            InlineKeyboardButton('📌 ʜᴇʟᴘ', callback_data='help'),
+            InlineKeyboardButton('💝 ᴀʙᴏᴜᴛ', callback_data='about')
         ],
         [
-            InlineKeyboardButton("🛍️ 𝐋ᴏᴏᴛ 𝐃ᴇᴀʟs 🔥", url=f'https://t.me/{DEALS_CHANNEL}')
+            InlineKeyboardButton("🛍️ ʟᴏᴏᴛ ᴅᴇᴀʟs 🔥", url=f'https://t.me/{DEALS_CHANNEL}')
         ],
         [
-            InlineKeyboardButton("📺 𝐘ᴏᴜ𝐓ᴜʙᴇ 𝐂ʜᴀɴɴᴇʟ", url=YOUTUBE_URL),
-            InlineKeyboardButton("📢 𝐔ᴘᴅᴀᴛᴇs", url=CHANNEL_URL)
+            InlineKeyboardButton("📺 ʏᴏᴜᴛᴜʙᴇ ᴄʜᴀɴɴᴇʟ", url=YOUTUBE_URL),
+            InlineKeyboardButton("📢 ᴜᴘᴅᴀᴛᴇs", url=CHANNEL_URL)
         ],
         [
-            InlineKeyboardButton('🔚 𝐂ʟᴏsᴇ 🔚', callback_data='close')
+            InlineKeyboardButton('🔚 ᴄʟᴏsᴇ', callback_data='close')
         ]
     ])
 
 def get_help_buttons():
     return InlineKeyboardMarkup([
         [
-            InlineKeyboardButton('🏠 𝐇ᴏᴍᴇ', callback_data='home'),
-            InlineKeyboardButton('💝 𝐀ʙᴏᴜᴛ', callback_data='about')
+            InlineKeyboardButton('🏠 ʜᴏᴍᴇ', callback_data='home'),
+            InlineKeyboardButton('💝 ᴀʙᴏᴜᴛ', callback_data='about')
         ],
         [
-            InlineKeyboardButton("🛍️ 𝐋ᴏᴏᴛ 𝐃ᴇᴀʟs 🔥", url=f'https://t.me/{DEALS_CHANNEL}')
+            InlineKeyboardButton("🛍️ ʟᴏᴏᴛ ᴅᴇᴀʟs 🔥", url=f'https://t.me/{DEALS_CHANNEL}')
         ],
         [
-            InlineKeyboardButton("💬 𝐃ᴏᴜʙᴛ / 𝐂ᴏɴᴛᴀᴄᴛ", url=DEVELOPER_URL)
+            InlineKeyboardButton("💬 ᴅᴏᴜʙᴛ / ᴄᴏɴᴛᴀᴄᴛ", url=DEVELOPER_URL)
         ],
         [
-            InlineKeyboardButton('🔚 𝐂ʟᴏsᴇ 🔚', callback_data='close')
+            InlineKeyboardButton('🔚 ᴄʟᴏsᴇ', callback_data='close')
         ]
     ])
 
 def get_about_buttons():
     return InlineKeyboardMarkup([
         [
-            InlineKeyboardButton('📌 𝐇ᴇʟᴘ', callback_data='help'),
-            InlineKeyboardButton('🏠 𝐇ᴏᴍᴇ', callback_data='home')
+            InlineKeyboardButton('📌 ʜᴇʟᴘ', callback_data='help'),
+            InlineKeyboardButton('🏠 ʜᴏᴍᴇ', callback_data='home')
         ],
         [
-            InlineKeyboardButton("🛍️ 𝐋ᴏᴏᴛ 𝐃ᴇᴀʟs 🔥", url=f'https://t.me/{DEALS_CHANNEL}')
+            InlineKeyboardButton("🛍️ ʟᴏᴏᴛ ᴅᴇᴀʟs 🔥", url=f'https://t.me/{DEALS_CHANNEL}')
         ],
         [
-            InlineKeyboardButton("📺 𝐘ᴏᴜ𝐓ᴜʙᴇ", url=YOUTUBE_URL),
-            InlineKeyboardButton("📢 𝐔ᴘᴅᴀᴛᴇs", url=CHANNEL_URL)
+            InlineKeyboardButton("📺 ʏᴏᴜᴛᴜʙᴇ", url=YOUTUBE_URL),
+            InlineKeyboardButton("📢 ᴜᴘᴅᴀᴛᴇs", url=CHANNEL_URL)
         ],
         [
-            InlineKeyboardButton('🔚 𝐂ʟᴏsᴇ 🔚', callback_data='close')
+            InlineKeyboardButton('🔚 ᴄʟᴏsᴇ', callback_data='close')
         ]
     ])
 
 def get_fsub_buttons(updates_invite: str, deals_invite: str, user_id: int):
     return InlineKeyboardMarkup([
         [
-            InlineKeyboardButton('📢 𝟏. 𝐉ᴏɪɴ 𝐔ᴘᴅᴀᴛᴇs 𝐂ʜᴀɴɴᴇʟ', url=updates_invite)
+            InlineKeyboardButton('📢 1. ᴊᴏɪɴ ᴜᴘᴅᴀᴛᴇs ᴄʜᴀɴɴᴇʟ', url=updates_invite)
         ],
         [
-            InlineKeyboardButton('🛍️ 𝟐. 𝐉ᴏɪɴ 𝐃ᴇᴀʟs 𝐂ʜᴀɴɴᴇʟ 🔥', url=deals_invite)
+            InlineKeyboardButton('🛍️ 2. ᴊᴏɪɴ ᴅᴇᴀʟs ᴄʜᴀɴɴᴇʟ 🔥', url=deals_invite)
         ],
         [
-            InlineKeyboardButton('✅ 𝐕ᴇʀɪғʏ & 𝐒ᴛᴀʀᴛ', callback_data=f'verify_{user_id}')
+            InlineKeyboardButton('✅ ᴠᴇʀɪғʏ & sᴛᴀʀᴛ', callback_data=f'verify_{user_id}')
         ]
     ])
 
@@ -183,23 +281,27 @@ def get_youtube_quality_buttons(cache_id: str, download_links: list):
         itype = item.get("type") or "video"
 
         if fmt in ["1080", "1080p"]:
-            btn_text = "🎬 1080p MP4"
+            btn_text = "🎬 1080ᴘ ᴍᴘ4"
         elif fmt in ["720", "720p"]:
-            btn_text = "🎬 720p MP4"
+            btn_text = "🎬 720ᴘ ᴍᴘ4"
         elif fmt in ["480", "480p"]:
-            btn_text = "🎬 480p MP4"
+            btn_text = "🎬 480ᴘ ᴍᴘ4"
         elif fmt in ["360", "360p"]:
-            btn_text = "🎬 360p MP4"
+            btn_text = "🎬 360ᴘ ᴍᴘ4"
+        elif fmt in ["240", "240p"]:
+            btn_text = "🎬 240ᴘ ᴍᴘ4"
+        elif fmt in ["144", "144p"]:
+            btn_text = "🎬 144ᴘ ᴍᴘ4"
         elif fmt in ["4k", "2160"]:
-            btn_text = "🎬 4K (2160p)"
+            btn_text = "🎬 4ᴋ (2160ᴘ)"
         elif fmt in ["1440"]:
-            btn_text = "🎬 2K (1440p)"
+            btn_text = "🎬 2ᴋ (1440ᴘ)"
         elif fmt.lower() == "mp3":
-            btn_text = "🎵 MP3 Audio"
+            btn_text = "🎵 ᴍᴘ3 ᴀᴜᴅɪᴏ"
         elif fmt.lower() == "m4a":
-            btn_text = "🎵 M4A Audio"
+            btn_text = "🎵 ᴍ4ᴀ ᴀᴜᴅɪᴏ"
         elif fmt.lower() == "flac":
-            btn_text = "🎵 FLAC Audio"
+            btn_text = "🎵 ғʟᴀᴄ ᴀᴜᴅɪᴏ"
         else:
             btn_text = f"📦 {fmt.upper()}"
 
@@ -216,5 +318,5 @@ def get_youtube_quality_buttons(cache_id: str, download_links: list):
     for i in range(0, len(audio_row), 2):
         buttons.append(audio_row[i:i+2])
 
-    buttons.append([InlineKeyboardButton("🔚 𝐂ʟᴏsᴇ", callback_data="close")])
+    buttons.append([InlineKeyboardButton("🔚 ᴄʟᴏsᴇ", callback_data="close")])
     return InlineKeyboardMarkup(buttons)
