@@ -40,13 +40,11 @@ An ultra-fast, professional Telegram Bot built with **Python & Pyrogram (MTProto
 - 🌐 **Sunil-SSBots Custom TeraBox API Integration:**
   - Uses `https://sunil-ssbots.vercel.app/api/terabox?url={url}` for high-speed direct download links (DDL) and streaming URLs.
   - Supports all 20+ TeraBox mirrors (`teraboxlink.com`, `terabox.com`, `terabox.app`, `1024terabox.com`, etc.).
-- 📺 **Interactive YouTube Video & Audio Downloader:**
-  - Uses `https://sunil-ssbots.vercel.app/api/youtube?url={url}` to fetch candidate formats.
-  - Informs the user to wait a few seconds while qualities are generated.
-  - Displays inline quality selection buttons:
-    - 🎬 **Video:** `1080p`, `720p`, `480p`, `360p`
-    - 🎵 **Audio:** `MP3 (High Quality)`, `M4A (AAC)`
-  - Downloads the selected quality and delivers it directly to Telegram!
+- 📺 **Interactive YouTube Video & Audio Downloader (ytultra.com Engine):**
+  - Powered by `https://www.ytultra.com/en/youtube-video-downloader/` (`api.ytultra.com`) for direct, ad-free stream extraction.
+  - Multi-Quality Video Support: `4K (2160p)`, `2K (1440p)`, `1080p`, `720p`, `480p`, `360p`, `240p`, `144p`.
+  - **Automated FFmpeg Stream Muxing:** High-definition adaptive video streams are automatically downloaded alongside the highest-quality AAC/M4A audio stream and merged instantaneously with FFmpeg before MTProto upload!
+  - 🎵 **Lossless Audio Extraction:** Direct `MP3 (192kbps)` and `M4A (AAC)` audio download with artist and title tags.
 - 🎬 **Diskwala Video Stream Resolver:**
   - Auto-resolves Diskwala share URLs into streamable video files.
 - 🔐 **Dual-Channel Force Subscribe Verification:**
