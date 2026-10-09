@@ -34,7 +34,11 @@ async def send_log(client: Client, text: str):
         except Exception:
             pass
     except Exception as e:
-        print(f"[LOG CHANNEL NOTE] {e}")
+        err_msg = str(e)
+        if "Peer id invalid" in err_msg or "PEER_ID_INVALID" in err_msg:
+            print(f"[LOG CHANNEL NOTE] Peer id invalid ({LOG_CHANNEL}): Bot must be added as an ADMINISTRATOR in your Log Channel to send logs.")
+        else:
+            print(f"[LOG CHANNEL NOTE] {e}")
 
 async def log_bot_started(client: Client):
     """Sends bot started notification to LOG_CHANNEL."""
@@ -59,4 +63,3 @@ async def log_bot_started(client: Client):
         await send_log(client, text)
     except Exception as e:
         print(f"[LOG BOT STARTED WARNING] {e}")
-
