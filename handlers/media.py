@@ -88,6 +88,7 @@ def register_media_handlers(app: Client):
                         "download_links": yt_info["download_links"],
                         "best_audio_url": yt_info.get("best_audio_url"),
                         "video_id": yt_info.get("video_id"),
+                        "original_url": url,
                         "user_id": user_id
                     }
                     yt_cache.set(cache_id, yt_payload)
