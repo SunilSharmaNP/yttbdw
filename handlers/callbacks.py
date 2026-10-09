@@ -103,16 +103,23 @@ def register_callback_handlers(app: Client):
                 pass
             return
 
-        # 2. YouTube Quality Download Callback (ytq_{cache_id}_{idx})
-        if data.startswith("ytq_"):
-            parts = data.split("_")
-            if len(parts) >= 3:
-                cache_id = f"{parts[1]}_{parts[2]}" if len(parts) >= 4 else parts[1]
-                idx = int(parts[-1])
+        # 2. YouTube Quality Download Callback (ytq:{cache_id}:{idx} or ytq_{cache_id}_{idx})
+        if data.startswith("ytq:") or data.startswith("ytq_"):
+            try:
+                if data.startswith("ytq:"):
+                    parts = data.split(":")
+                    cache_id = parts[1]
+                    idx = int(parts[2])
+                else:
+                    parts = data.split("_")
+                    idx = int(parts[-1])
+                    cache_id = "_".join(parts[1:-1])
+            except Exception:
+                return await query.answer("⚠️ Invalid quality parameter.", show_alert=True)
 
-                cached = yt_cache.get(cache_id)
-                if not cached:
-                    return await query.answer("⚠️ Session Expired! Please re-send the YouTube link.", show_alert=True)
+            cached = yt_cache.get(cache_id) or yt_cache.get(str(user_id))
+            if not cached:
+                return await query.answer("⚠️ Session Expired! Please re-send the YouTube link.", show_alert=True)
 
                 download_links = cached.get("download_links", [])
                 if idx >= len(download_links):
