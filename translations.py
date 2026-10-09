@@ -305,7 +305,7 @@ def get_youtube_quality_buttons(cache_id: str, download_links: list):
         else:
             btn_text = f"📦 {fmt.upper()}"
 
-        cb_data = f"ytq_{cache_id}_{idx}"
+        cb_data = f"ytq:{cache_id}:{idx}"
 
         if itype == "audio":
             audio_row.append(InlineKeyboardButton(btn_text, callback_data=cb_data))
