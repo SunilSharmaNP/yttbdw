@@ -1,64 +1,65 @@
 import asyncio
 import os
-import re
 import shutil
 import sys
+from urllib.parse import urlparse
 
 from core.queue import TaskCancelledException, task_manager
 
 
-def _max_height(quality: str) -> int:
-    normalized = quality.lower()
-    if "4k" in normalized:
-        return 2160
-    if "2k" in normalized:
-        return 1440
-    match = re.search(r"(\d{3,4})", normalized)
-    if not match:
-        raise ValueError(f"Unsupported YouTube quality: {quality}")
-    return int(match.group(1))
+YOUTUBE_STREAM_HOSTS = ("googlevideo.com",)
+USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/135.0.0.0 Safari/537.36"
+)
 
 
-async def download_youtube_video(
-    video_id: str,
-    quality: str,
+def _validate_stream_url(stream_url: str) -> None:
+    parsed = urlparse(stream_url or "")
+    host = (parsed.hostname or "").lower()
+    if (
+        parsed.scheme != "https"
+        or not any(host == domain or host.endswith(f".{domain}") for domain in YOUTUBE_STREAM_HOSTS)
+    ):
+        raise ValueError("Resolver did not return a valid HTTPS Google Video stream URL.")
+
+
+async def download_youtube_stream(
+    stream_url: str,
     output_path: str,
     progress_tracker,
     user_id: int,
 ) -> str:
-    """Download a fresh YouTube stream locally when an extracted link is rejected."""
-    if not re.fullmatch(r"[A-Za-z0-9_-]{11}", video_id or ""):
-        raise ValueError("A valid YouTube video ID is required for the retry.")
+    """Download the resolver's signed Google Video URL with yt-dlp; no YouTube cookies used."""
+    _validate_stream_url(stream_url)
 
-    max_height = _max_height(quality)
     output_dir = os.path.dirname(output_path) or "."
     os.makedirs(output_dir, exist_ok=True)
     temp_dir = f"{output_path}.yt-dlp-temp"
     os.makedirs(temp_dir, exist_ok=True)
 
-    format_selector = (
-        f"bestvideo[height<={max_height}][ext=mp4]+bestaudio[ext=m4a]/"
-        f"bestvideo[height<={max_height}]+bestaudio/"
-        f"best[height<={max_height}][ext=mp4]/best[height<={max_height}]"
-    )
     command = [
         sys.executable,
         "-m",
         "yt_dlp",
+        "--force-generic-extractor",
         "--no-playlist",
         "--no-warnings",
         "--newline",
         "--progress-template",
         "download:YT_PROGRESS %(progress.downloaded_bytes)s %(progress.total_bytes)s %(progress.total_bytes_estimate)s",
-        "--format",
-        format_selector,
-        "--merge-output-format",
-        "mp4",
+        "--add-headers",
+        f"User-Agent:{USER_AGENT}",
+        "--add-headers",
+        "Referer:https://www.youtube.com/",
+        "--add-headers",
+        "Origin:https://www.youtube.com",
         "--output",
         output_path,
         "--paths",
         f"temp:{temp_dir}",
-        f"https://www.youtube.com/watch?v={video_id}",
+        stream_url,
     ]
 
     if user_id:
@@ -102,11 +103,11 @@ async def download_youtube_video(
         if return_code != 0:
             detail = " | ".join(error_lines[-3:])
             raise RuntimeError(
-                "Fresh YouTube download failed"
-                + (f": {detail[:800]}" if detail else f" (yt-dlp exit {return_code})")
+                "yt-dlp could not download the resolver stream"
+                + (f": {detail[:800]}" if detail else f" (exit {return_code})")
             )
         if not os.path.isfile(output_path) or os.path.getsize(output_path) <= 1000:
-            raise RuntimeError("yt-dlp finished without producing a valid video file.")
+            raise RuntimeError("yt-dlp finished without producing a valid media file.")
         return output_path
     finally:
         if proc is not None and proc.returncode is None:
