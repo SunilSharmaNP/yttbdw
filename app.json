@@ -1,7 +1,7 @@
 {
   "name": "TeraBox, Diskwala & YouTube Downloader Bot",
   "description": "Telegram bot using Pyrogram MTProto and Sunil-SSBots API to auto-detect TeraBox, Diskwala, and YouTube links, download media, verify dual channel subscriptions, and upload up to 2GB to Telegram.",
-  "repository": "https://github.com",
+  "repository": "https://github.com/SunilSharmaNP/yttbdw",
   "keywords": ["telegram", "pyrogram", "terabox", "diskwala", "youtube", "mtproto", "downloader", "bot", "forcesub"],
   "stack": "container",
   "buildpacks": [
@@ -59,6 +59,21 @@
       "description": "Max file size to download & upload in MB (2048 = 2GB)",
       "required": false,
       "value": "2048"
+    },
+    "LOG_CHANNEL": {
+      "description": "Log Channel ID (e.g. -1003968847525) or username. Note: Add bot as Admin in channel first!",
+      "required": false,
+      "value": ""
+    },
+    "MONGO_URI": {
+      "description": "MongoDB connection string for persistent users, custom thumbnails, and analytics",
+      "required": false,
+      "value": ""
+    },
+    "OWNER_ID": {
+      "description": "Telegram user ID of bot owner",
+      "required": false,
+      "value": "2032446867"
     }
   },
   "formation": {
