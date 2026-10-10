@@ -154,6 +154,9 @@ async def download_with_aria2c(
     Splits download into up to 16 concurrent streams for maximum speed.
     Runs under the stealth name 'ssengine' to protect Heroku accounts from bans.
     """
+    if not url or not url.startswith("http") or "127.0.0.1" in url or "localhost" in url:
+        raise ValueError(f"Invalid external stream URL provided to SSEngine: {url}")
+
     ctrl_file = f"{output_path}.aria2"
     if user_id and task_manager:
         task_manager.register_task_file(user_id, output_path)
