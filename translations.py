@@ -6,7 +6,17 @@
 # 💬 Support Chat         : @Sunil_Sharma_2_0_Bot
 # ==============================================================================
 
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+try:
+    from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+except ImportError:
+    class InlineKeyboardButton:
+        def __init__(self, text="", callback_data=None, url=None):
+            self.text = text
+            self.callback_data = callback_data
+            self.url = url
+    class InlineKeyboardMarkup:
+        def __init__(self, inline_keyboard=None):
+            self.inline_keyboard = inline_keyboard or []
 import config
 
 # Safe fallbacks in case config attributes are missing
