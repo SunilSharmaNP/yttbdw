@@ -49,8 +49,6 @@ UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like 
 
 SAVENOW_HEADERS = {
     "User-Agent": UA,
-    "Referer": "https://y2mate.yt/",
-    "Origin": "https://y2mate.yt",
     "Accept": "application/json, text/plain, */*",
 }
 
@@ -321,7 +319,7 @@ async def get_youtube_stream_url(yt_url: str, fmt_id: str = "720") -> str:
     if clean_fmt not in FORMAT_MAP:
         clean_fmt = "720" if clean_fmt not in ["mp3", "m4a"] else clean_fmt
 
-    # 1. Primary: Savenow.to PoW Engine
+    # 1. Primary: Savenow.to PoW Engine (Async with aiohttp)
     if aiohttp is not None:
         try:
             async with aiohttp.ClientSession(headers=SAVENOW_HEADERS) as session:
@@ -363,6 +361,45 @@ async def get_youtube_stream_url(yt_url: str, fmt_id: str = "720") -> str:
                                     continue
         except Exception as e:
             print(f"[SAVENOW DIRECT RESOLVE NOTE] {e}")
+    else:
+        # Fallback using urllib when running in lightweight runtime without aiohttp
+        try:
+            loop = asyncio.get_event_loop()
+            def _sync_savenow():
+                req = urllib.request.Request(f"{SAVENOW_BASE}/api/pow/challenge", headers=SAVENOW_HEADERS)
+                with urllib.request.urlopen(req, timeout=8) as r:
+                    cdata = json.loads(r.read().decode())
+                salt, diff = cdata["salt"], cdata["difficulty"]
+                prefix = "0" * diff
+                nonce = 0
+                while True:
+                    if hashlib.sha256(f"{salt}:{nonce}".encode("utf-8")).hexdigest().startswith(prefix):
+                        break
+                    nonce += 1
+                v_payload = {"salt": salt, "difficulty": diff, "expires_at": cdata["expires_at"], "signature": cdata["signature"], "nonce": nonce}
+                v_req = urllib.request.Request(f"{SAVENOW_BASE}/api/pow/verify", data=json.dumps(v_payload).encode("utf-8"), headers={**SAVENOW_HEADERS, "Content-Type": "application/json"})
+                with urllib.request.urlopen(v_req, timeout=8) as vr:
+                    tok = json.loads(vr.read().decode())["token"]
+                dl_req = urllib.request.Request(f"{SAVENOW_BASE}/api/v2/download?format={quote(clean_fmt)}&url={quote(yt_url)}&apikey={quote(SAVENOW_API_KEY)}", headers={**SAVENOW_HEADERS, "Authorization": f"Bearer {tok}"})
+                with urllib.request.urlopen(dl_req, timeout=15) as dr:
+                    ddata = json.loads(dr.read().decode())
+                purl = ddata.get("progress_url")
+                if ddata.get("download_url"):
+                    return ddata["download_url"]
+                if purl:
+                    for _ in range(35):
+                        time.sleep(1.5)
+                        pr_req = urllib.request.Request(purl, headers={**SAVENOW_HEADERS, "Authorization": f"Bearer {tok}"})
+                        with urllib.request.urlopen(pr_req, timeout=8) as pr:
+                            pbody = json.loads(pr.read().decode())
+                            if pbody.get("download_url") or pbody.get("url"):
+                                return pbody.get("download_url") or pbody.get("url")
+                return None
+            res = await loop.run_in_executor(None, _sync_savenow)
+            if res and res.startswith("http"):
+                return res
+        except Exception as e:
+            print(f"[SAVENOW SYNC FALLBACK NOTE] {e}")
 
     # 2. Secondary: Public Sunil-SSBots Vercel Engine
     if aiohttp is not None:
@@ -377,34 +414,7 @@ async def get_youtube_stream_url(yt_url: str, fmt_id: str = "720") -> str:
         except Exception as e:
             print(f"[VERCEL FALLBACK NOTE] {e}")
 
-    # 3. Third: High-Reliability yt-dlp Extractor Fallback
-    try:
-        import yt_dlp
-        is_audio_req = clean_fmt in ["mp3", "m4a", "audio"]
-        ydl_fmt = "bestaudio/best" if is_audio_req else f"bestvideo[height<={clean_fmt}]+bestaudio/best[height<={clean_fmt}]/best"
-        ydl_opts = {
-            "format": ydl_fmt,
-            "quiet": True,
-            "no_warnings": True,
-            "skip_download": True
-        }
-        loop = asyncio.get_event_loop()
-        def _extract():
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                return ydl.extract_info(yt_url, download=False)
-        info = await loop.run_in_executor(None, _extract)
-        if info:
-            if info.get("url") and info["url"].startswith("http"):
-                return info["url"]
-            formats = info.get("formats") or []
-            for f in reversed(formats):
-                f_url = f.get("url")
-                if f_url and f_url.startswith("http"):
-                    return f_url
-    except Exception as e:
-        print(f"[YT-DLP EXTRACT FALLBACK NOTE] {e}")
-
-    # 4. Final Fallback direct stream endpoint
+    # 3. Final Fallback: Sunil-SSBots direct stream endpoint
     return f"https://sunil-ssbots.vercel.app/api/youtube?url={quote(yt_url)}&format={quote(clean_fmt)}&dl=true"
 
 # --- 2. YouTube Video & Audio API Resolver (y2mate.yt PoW & Savenow Engine) ---
