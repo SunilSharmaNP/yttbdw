@@ -149,6 +149,7 @@ def register_callback_handlers(app: Client):
             await query.answer(f"⏳ Processing {fmt}...", show_alert=False)
 
             status_msg = query.message
+            ts = int(time.time())
             clean_name = "".join(c for c in title if c.isascii() and (c.isalnum() or c in "._- ")).strip()
             safe_title = "_".join(clean_name.split())[:50] or f"video_{ts}"
             task_start_time = time.time()
