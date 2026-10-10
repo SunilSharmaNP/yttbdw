@@ -43,7 +43,7 @@ async def download_youtube_stream(
         progress_tracker=progress_tracker,
         user_id=user_id,
         connections=16,
-        referer="https://y2mate.yt/"
+        referer=""
     )
 
     return downloaded_file, False
