@@ -1,10 +1,19 @@
 import os
 import time
-import aiohttp
-import aiofiles
-from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
+try:
+    from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
+except ImportError:
+    Message = None
+    InlineKeyboardMarkup = None
+    InlineKeyboardButton = None
 from resolvers import format_size
-from core.queue import task_manager, TaskCancelledException
+try:
+    from core.queue import task_manager, TaskCancelledException
+except ImportError:
+    task_manager = None
+    class TaskCancelledException(Exception):
+        pass
+from helpers.aria2 import download_with_aria2c
 
 def create_progress_bar(current, total):
     if not total:
@@ -33,7 +42,7 @@ class ProgressTracker:
             raise TaskCancelledException("Task cancelled by user.")
 
         now = time.time()
-        if now - self.last_edit < 3.5:
+        if now - self.last_edit < 2.5:
             return
         self.last_edit = now
 
@@ -48,7 +57,7 @@ class ProgressTracker:
             f"<b>{self.action_text}</b>\n\n"
             f"<code>{bar}</code>\n"
             f"💾 <b>Progress:</b> <code>{current_str} / {total_str}</code>\n"
-            f"⚡ <b>Speed:</b> <code>{speed_str}</code>"
+            f"⚡ <b>SSEngine Speed:</b> <code>{speed_str}</code>"
         )
         try:
             markup = get_cancel_button(self.user_id) if self.user_id else None
@@ -56,23 +65,14 @@ class ProgressTracker:
         except Exception:
             pass
 
-async def download_file(url: str, output_path: str, progress_tracker: ProgressTracker, user_id: int = 0):
-    if user_id:
-        task_manager.register_task_file(user_id, output_path)
-
-    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
-    timeout = aiohttp.ClientTimeout(total=3600)
-    async with aiohttp.ClientSession(headers=headers, timeout=timeout) as session:
-        async with session.get(url) as resp:
-            if resp.status not in (200, 206):
-                raise Exception(f"Download HTTP error {resp.status}")
-            total = int(resp.headers.get("content-length") or 0)
-            received = 0
-            async with aiofiles.open(output_path, "wb") as f:
-                async for chunk in resp.content.iter_chunked(1024 * 1024):
-                    if user_id and task_manager.is_cancelled(user_id):
-                        raise TaskCancelledException("Task cancelled by user.")
-                    await f.write(chunk)
-                    received += len(chunk)
-                    await progress_tracker.update(received, total)
-    return output_path
+async def download_file(url: str, output_path: str, progress_tracker: ProgressTracker, user_id: int = 0, referer: str = "", cookie: str = "") -> str:
+    """High-speed DDL download using multi-connection ssengine with real-time progress."""
+    return await download_with_aria2c(
+        url=url,
+        output_path=output_path,
+        progress_tracker=progress_tracker,
+        user_id=user_id,
+        connections=16,
+        referer=referer,
+        cookie=cookie
+    )
