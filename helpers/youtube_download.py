@@ -27,7 +27,16 @@ async def download_youtube_stream(
     if not stream_url or not stream_url.startswith("http"):
         raise ValueError("Invalid YouTube DDL stream URL provided.")
 
-    print(f"[YOUTUBE ARIA2C] Starting 16-connection download for user {user_id}: {output_path}")
+    if "127.0.0.1" in stream_url or "localhost" in stream_url:
+        print(f"[YOUTUBE SSEngine] Intercepted localhost stream URL, resolving direct CDN URL for {quality_tag}...")
+        from resolvers import get_youtube_stream_url
+        resolved = await get_youtube_stream_url(original_url or "", quality_tag or ("mp3" if is_audio else "720"))
+        if resolved and resolved.startswith("http") and "127.0.0.1" not in resolved and "localhost" not in resolved:
+            stream_url = resolved
+        else:
+            raise ValueError("Could not resolve external CDN stream URL for YouTube video.")
+
+    print(f"[YOUTUBE SSENGINE] Starting 16-connection download for user {user_id}: {output_path}")
     downloaded_file = await download_with_aria2c(
         url=stream_url,
         output_path=output_path,
