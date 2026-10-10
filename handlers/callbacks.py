@@ -279,15 +279,14 @@ def register_callback_handlers(app: Client):
                     raw_video_path = os.path.join(DOWNLOAD_DIR, f"{ts}_v_{safe_title}.{v_ext}")
                     muxed_path = os.path.join(DOWNLOAD_DIR, f"{ts}_{safe_title}_{fmt}.mp4")
                     task_manager.register_task_file(user_id, raw_video_path)
-                    task_manager.register_task_file(user_id, muxed_path)
 
                     await status_msg.edit_text(
-                        f"⏬ <b>[1/3] Downloading Video Track:</b> <code>{title}</code>\n"
+                        f"⏬ <b>Downloading via Aria2c (16 Conns):</b> <code>{title}</code>\n"
                         f"📦 <b>Quality:</b> <code>{fmt}</code>\n"
-                        f"<blockquote>⚡ <i>Fetching media stream...</i></blockquote>",
+                        f"<blockquote>⚡ <i>Multi-threaded high-speed DDL stream...</i></blockquote>",
                         reply_markup=get_cancel_button(user_id)
                     )
-                    video_tracker = ProgressTracker(status_msg, f"⏬ [1/3] Video Track: {fmt}", user_id=user_id)
+                    video_tracker = ProgressTracker(status_msg, f"⏬ Aria2c Downloading: {fmt}", user_id=user_id)
                     final_upload_path = raw_video_path
                     file_name = f"{safe_title}_{fmt}.{v_ext}"
 
@@ -302,43 +301,41 @@ def register_callback_handlers(app: Client):
                         status_msg=status_msg
                     )
 
-                    if was_fallback:
-                        final_upload_path = downloaded_path
-                        file_name = f"{safe_title}_{fmt}.mp4"
-                    else:
-                        final_upload_path = downloaded_path
-                        if audio_url:
-                            raw_audio_path = os.path.join(DOWNLOAD_DIR, f"{ts}_a_{safe_title}.m4a")
-                            task_manager.register_task_file(user_id, raw_audio_path)
-                            await status_msg.edit_text(
-                                f"🎵 <b>[2/3] Downloading High-Quality Audio Track...</b>\n"
-                                f"<blockquote>⚡ <i>Fetching synchronized audio stream...</i></blockquote>",
-                                reply_markup=get_cancel_button(user_id)
-                            )
-                            audio_tracker = ProgressTracker(status_msg, "🎵 [2/3] Audio Track", user_id=user_id)
-                            downloaded_audio, _ = await download_youtube_stream(
-                                stream_url=audio_url,
-                                output_path=raw_audio_path,
-                                progress_tracker=audio_tracker,
-                                user_id=user_id,
-                                original_url=target_yt_url,
-                                quality_tag="audio",
-                                is_audio=True,
-                                status_msg=status_msg
-                            )
+                    final_upload_path = downloaded_path
+                    # Check if separate audio muxing is explicitly needed (only if audio_url provided and different from video_url)
+                    if audio_url and audio_url != video_url and selected.get("needs_muxing"):
+                        task_manager.register_task_file(user_id, muxed_path)
+                        raw_audio_path = os.path.join(DOWNLOAD_DIR, f"{ts}_a_{safe_title}.m4a")
+                        task_manager.register_task_file(user_id, raw_audio_path)
+                        await status_msg.edit_text(
+                            f"🎵 <b>Downloading High-Quality Audio Track...</b>\n"
+                            f"<blockquote>⚡ <i>Fetching audio stream via aria2c...</i></blockquote>",
+                            reply_markup=get_cancel_button(user_id)
+                        )
+                        audio_tracker = ProgressTracker(status_msg, "🎵 Audio Track", user_id=user_id)
+                        downloaded_audio, _ = await download_youtube_stream(
+                            stream_url=audio_url,
+                            output_path=raw_audio_path,
+                            progress_tracker=audio_tracker,
+                            user_id=user_id,
+                            original_url=target_yt_url,
+                            quality_tag="audio",
+                            is_audio=True,
+                            status_msg=status_msg
+                        )
 
-                            if task_manager.is_cancelled(user_id):
-                                raise TaskCancelledException()
+                        if task_manager.is_cancelled(user_id):
+                            raise TaskCancelledException()
 
-                            await status_msg.edit_text(
-                                f"⚡ <b>[3/3] Fast Muxing Video + Audio via FFmpeg...</b>\n"
-                                f"<blockquote>🎬 <i>Synchronizing media into single MP4 file...</i></blockquote>",
-                                reply_markup=get_cancel_button(user_id)
-                            )
-                            is_muxed = await mux_media_ffmpeg(raw_video_path, downloaded_audio, muxed_path)
-                            if is_muxed:
-                                final_upload_path = muxed_path
-                                file_name = f"{safe_title}_{fmt}.mp4"
+                        await status_msg.edit_text(
+                            f"⚡ <b>Fast Muxing Video + Audio via FFmpeg...</b>\n"
+                            f"<blockquote>🎬 <i>Synchronizing media into single MP4 file...</i></blockquote>",
+                            reply_markup=get_cancel_button(user_id)
+                        )
+                        is_muxed = await mux_media_ffmpeg(raw_video_path, downloaded_audio, muxed_path)
+                        if is_muxed:
+                            final_upload_path = muxed_path
+                            file_name = f"{safe_title}_{fmt}.mp4"
 
                     if task_manager.is_cancelled(user_id):
                         raise TaskCancelledException()
