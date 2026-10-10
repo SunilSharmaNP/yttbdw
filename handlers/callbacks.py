@@ -149,8 +149,8 @@ def register_callback_handlers(app: Client):
             await query.answer(f"⏳ Processing {fmt}...", show_alert=False)
 
             status_msg = query.message
-            safe_title = "".join(c for c in title if c.isalnum() or c in "._- ").strip() or "video"
-            ts = int(time.time())
+            clean_name = "".join(c for c in title if c.isascii() and (c.isalnum() or c in "._- ")).strip()
+            safe_title = "_".join(clean_name.split())[:50] or f"video_{ts}"
             task_start_time = time.time()
 
             raw_video_path = None
@@ -191,19 +191,28 @@ def register_callback_handlers(app: Client):
 
                 if itype == "audio":
                     target_audio_url = video_url or audio_url
-                    if not target_audio_url and not target_yt_url:
-                        raise Exception("Audio stream URL not found.")
+                    if not target_audio_url or "127.0.0.1" in str(target_audio_url) or "localhost" in str(target_audio_url) or selected.get("needs_resolve"):
+                        await status_msg.edit_text(
+                            f"⚡ <b>Connecting to High-Speed Audio Engine...</b>\n"
+                            f"📦 <b>Format:</b> <code>{fmt.upper()}</code>\n"
+                            f"<blockquote>🎵 <i>Generating direct stream from Savenow network...</i></blockquote>",
+                            reply_markup=get_cancel_button(user_id),
+                            parse_mode=enums.ParseMode.HTML
+                        )
+                        from resolvers import get_youtube_stream_url
+                        target_audio_url = await get_youtube_stream_url(target_yt_url, fmt)
 
                     raw_audio_path = os.path.join(DOWNLOAD_DIR, f"{ts}_a_{safe_title}.m4a")
                     task_manager.register_task_file(user_id, raw_audio_path)
 
                     await status_msg.edit_text(
-                        f"🎵 <b>Downloading Audio Stream:</b> <code>{title}</code>\n"
+                        f"🎵 <b>Downloading Audio via SSEngine (16 Conns):</b> <code>{title}</code>\n"
                         f"📦 <b>Format:</b> <code>{fmt.upper()}</code>\n"
-                        f"<blockquote>⚡ <i>Connecting to high-speed audio stream...</i></blockquote>",
-                        reply_markup=get_cancel_button(user_id)
+                        f"<blockquote>⚡ <i>Multi-threaded high-speed audio stream...</i></blockquote>",
+                        reply_markup=get_cancel_button(user_id),
+                        parse_mode=enums.ParseMode.HTML
                     )
-                    audio_tracker = ProgressTracker(status_msg, f"🎵 Downloading Audio: {title}", user_id=user_id)
+                    audio_tracker = ProgressTracker(status_msg, f"🎵 SSEngine Downloading: {fmt.upper()}", user_id=user_id)
                     downloaded_audio_path, _ = await download_youtube_stream(
                         stream_url=target_audio_url,
                         output_path=raw_audio_path,
@@ -275,23 +284,36 @@ def register_callback_handlers(app: Client):
                     )
 
                 else:
+                    target_video_url = video_url
+                    if not target_video_url or "127.0.0.1" in str(target_video_url) or "localhost" in str(target_video_url) or selected.get("needs_resolve"):
+                        await status_msg.edit_text(
+                            f"⚡ <b>Connecting to High-Speed Video Engine...</b>\n"
+                            f"📦 <b>Quality:</b> <code>{fmt}</code>\n"
+                            f"<blockquote>🎬 <i>Generating direct stream from Savenow network...</i></blockquote>",
+                            reply_markup=get_cancel_button(user_id),
+                            parse_mode=enums.ParseMode.HTML
+                        )
+                        from resolvers import get_youtube_stream_url
+                        target_video_url = await get_youtube_stream_url(target_yt_url, fmt)
+
                     v_ext = selected.get("ext") or "mp4"
                     raw_video_path = os.path.join(DOWNLOAD_DIR, f"{ts}_v_{safe_title}.{v_ext}")
                     muxed_path = os.path.join(DOWNLOAD_DIR, f"{ts}_{safe_title}_{fmt}.mp4")
                     task_manager.register_task_file(user_id, raw_video_path)
 
                     await status_msg.edit_text(
-                        f"⏬ <b>Downloading via Aria2c (16 Conns):</b> <code>{title}</code>\n"
+                        f"⏬ <b>Downloading via SSEngine (16 Conns):</b> <code>{title}</code>\n"
                         f"📦 <b>Quality:</b> <code>{fmt}</code>\n"
                         f"<blockquote>⚡ <i>Multi-threaded high-speed DDL stream...</i></blockquote>",
-                        reply_markup=get_cancel_button(user_id)
+                        reply_markup=get_cancel_button(user_id),
+                        parse_mode=enums.ParseMode.HTML
                     )
-                    video_tracker = ProgressTracker(status_msg, f"⏬ Aria2c Downloading: {fmt}", user_id=user_id)
+                    video_tracker = ProgressTracker(status_msg, f"⏬ SSEngine Downloading: {fmt}", user_id=user_id)
                     final_upload_path = raw_video_path
                     file_name = f"{safe_title}_{fmt}.{v_ext}"
 
                     downloaded_path, was_fallback = await download_youtube_stream(
-                        stream_url=video_url,
+                        stream_url=target_video_url,
                         output_path=raw_video_path,
                         progress_tracker=video_tracker,
                         user_id=user_id,
@@ -309,8 +331,9 @@ def register_callback_handlers(app: Client):
                         task_manager.register_task_file(user_id, raw_audio_path)
                         await status_msg.edit_text(
                             f"🎵 <b>Downloading High-Quality Audio Track...</b>\n"
-                            f"<blockquote>⚡ <i>Fetching audio stream via aria2c...</i></blockquote>",
-                            reply_markup=get_cancel_button(user_id)
+                            f"<blockquote>⚡ <i>Fetching audio stream via SSEngine...</i></blockquote>",
+                            reply_markup=get_cancel_button(user_id),
+                            parse_mode=enums.ParseMode.HTML
                         )
                         audio_tracker = ProgressTracker(status_msg, "🎵 Audio Track", user_id=user_id)
                         downloaded_audio, _ = await download_youtube_stream(
@@ -420,9 +443,11 @@ def register_callback_handlers(app: Client):
             except Exception as e:
                 print(f"[YOUTUBE DOWNLOAD ERROR] User {user_id}: {e}")
                 try:
+                    safe_dl_link = target_video_url if ('target_video_url' in locals() and target_video_url and '127.0.0.1' not in str(target_video_url) and 'localhost' not in str(target_video_url)) else target_yt_url
                     await status_msg.edit_text(
                         f"❌ <b>Download Error:</b> <code>{str(e)}</code>\n\n"
-                        f"🔗 <b>Direct Video Link:</b> <a href='{video_url}'>Click here</a>"
+                        f"🔗 <b>Source Link:</b> <a href='{safe_dl_link}'>Click here</a>",
+                        parse_mode=enums.ParseMode.HTML
                     )
                 except Exception:
                     pass
