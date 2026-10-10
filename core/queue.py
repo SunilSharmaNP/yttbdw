@@ -1,8 +1,12 @@
 import os
 import time
 import asyncio
-from pyrogram import enums
-from pyrogram.types import Message
+try:
+    from pyrogram import enums
+    from pyrogram.types import Message
+except ImportError:
+    enums = None
+    Message = None
 import config
 from translations import Script
 
