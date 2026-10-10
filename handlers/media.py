@@ -188,8 +188,25 @@ def register_media_handlers(app: Client):
                 tmp_path = os.path.join(DOWNLOAD_DIR, f"{int(time.time())}_{safe_name}")
                 task_manager.register_task_file(user_id, tmp_path)
 
-                download_tracker = ProgressTracker(status_msg, f"⏬ Downloading: {file_name} ({file_size})", user_id=user_id)
-                await download_file(dlink, tmp_path, download_tracker, user_id=user_id)
+                await status_msg.edit_text(
+                    f"⏬ <b>Downloading via SSEngine (16 Conns):</b> <code>{file_name}</code>\n"
+                    f"💾 <b>Size:</b> <code>{file_size}</code>\n"
+                    f"<blockquote>⚡ <i>Multi-stream high-speed {link_type.upper()} DDL download...</i></blockquote>",
+                    reply_markup=get_cancel_button(user_id),
+                    parse_mode=enums.ParseMode.HTML
+                )
+
+                download_tracker = ProgressTracker(status_msg, f"⏬ SSEngine Downloading: {file_name}", user_id=user_id)
+                tb_cookie = getattr(config, "TERABOX_COOKIES", "") if link_type == "terabox" else ""
+                tb_referer = "https://www.terabox.com/" if link_type == "terabox" else ""
+                await download_file(
+                    url=dlink,
+                    output_path=tmp_path,
+                    progress_tracker=download_tracker,
+                    user_id=user_id,
+                    referer=tb_referer,
+                    cookie=tb_cookie
+                )
 
                 if task_manager.is_cancelled(user_id):
                     raise TaskCancelledException()
