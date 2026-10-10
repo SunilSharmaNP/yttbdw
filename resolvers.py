@@ -311,12 +311,107 @@ async def _process_savenow_format(session: aiohttp.ClientSession, yt_url: str, f
 
     return None
 
+async def get_youtube_stream_url(yt_url: str, fmt_id: str = "720") -> str:
+    """
+    On-demand fetch of the direct high-speed CDN stream URL for a chosen format.
+    Uses y2mate / Savenow PoW engine with fallback to sunil-ssbots Vercel engine.
+    Never returns 127.0.0.1 on Heroku.
+    """
+    clean_fmt = fmt_id.lower().replace("p", "").strip()
+    if clean_fmt not in FORMAT_MAP:
+        clean_fmt = "720" if clean_fmt not in ["mp3", "m4a"] else clean_fmt
+
+    # 1. Primary: Savenow.to PoW Engine
+    if aiohttp is not None:
+        try:
+            async with aiohttp.ClientSession(headers=SAVENOW_HEADERS) as session:
+                token = await _get_valid_pow_token(session)
+                headers = dict(SAVENOW_HEADERS)
+                if token:
+                    headers["Authorization"] = f"Bearer {token}"
+
+                api_url = (
+                    f"{SAVENOW_BASE}/api/v2/download"
+                    f"?format={quote(clean_fmt)}"
+                    f"&url={quote(yt_url)}"
+                    f"&apikey={quote(SAVENOW_API_KEY)}"
+                )
+
+                async with session.get(api_url, headers=headers, timeout=aiohttp.ClientTimeout(total=20)) as resp:
+                    if resp.status in (200, 201):
+                        data = await resp.json()
+                        dlink = data.get("download_url") or data.get("url")
+                        if dlink and dlink.startswith("http") and "127.0.0.1" not in dlink:
+                            return dlink
+
+                        progress_url = data.get("progress_url")
+                        if progress_url:
+                            # Poll progress up to 40 times (1.5s interval)
+                            for _ in range(40):
+                                await asyncio.sleep(1.5)
+                                try:
+                                    async with session.get(progress_url, headers=headers, timeout=aiohttp.ClientTimeout(total=8)) as p_resp:
+                                        if p_resp.status == 200:
+                                            p_data = await p_resp.json()
+                                            p_dlink = p_data.get("download_url") or p_data.get("url")
+                                            if p_dlink and p_dlink.startswith("http") and "127.0.0.1" not in p_dlink:
+                                                return p_dlink
+                                            status = (p_data.get("text") or "").lower()
+                                            if status in ["error", "failed"]:
+                                                break
+                                except Exception:
+                                    continue
+        except Exception as e:
+            print(f"[SAVENOW DIRECT RESOLVE NOTE] {e}")
+
+    # 2. Secondary: Public Sunil-SSBots Vercel Engine
+    if aiohttp is not None:
+        try:
+            vercel_endpoint = f"https://sunil-ssbots.vercel.app/api/youtube?url={quote(yt_url)}&format={quote(clean_fmt)}&dl=true"
+            async with aiohttp.ClientSession(headers={"User-Agent": UA}) as s2:
+                async with s2.head(vercel_endpoint, allow_redirects=True, timeout=aiohttp.ClientTimeout(total=15)) as v_resp:
+                    if v_resp.status in (200, 206, 302, 307):
+                        final_url = str(v_resp.url)
+                        if final_url.startswith("http") and "127.0.0.1" not in final_url:
+                            return final_url
+        except Exception as e:
+            print(f"[VERCEL FALLBACK NOTE] {e}")
+
+    # 3. Third: High-Reliability yt-dlp Extractor Fallback
+    try:
+        import yt_dlp
+        is_audio_req = clean_fmt in ["mp3", "m4a", "audio"]
+        ydl_fmt = "bestaudio/best" if is_audio_req else f"bestvideo[height<={clean_fmt}]+bestaudio/best[height<={clean_fmt}]/best"
+        ydl_opts = {
+            "format": ydl_fmt,
+            "quiet": True,
+            "no_warnings": True,
+            "skip_download": True
+        }
+        loop = asyncio.get_event_loop()
+        def _extract():
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                return ydl.extract_info(yt_url, download=False)
+        info = await loop.run_in_executor(None, _extract)
+        if info:
+            if info.get("url") and info["url"].startswith("http"):
+                return info["url"]
+            formats = info.get("formats") or []
+            for f in reversed(formats):
+                f_url = f.get("url")
+                if f_url and f_url.startswith("http"):
+                    return f_url
+    except Exception as e:
+        print(f"[YT-DLP EXTRACT FALLBACK NOTE] {e}")
+
+    # 4. Final Fallback direct stream endpoint
+    return f"https://sunil-ssbots.vercel.app/api/youtube?url={quote(yt_url)}&format={quote(clean_fmt)}&dl=true"
+
 # --- 2. YouTube Video & Audio API Resolver (y2mate.yt PoW & Savenow Engine) ---
 async def resolve_youtube(url: str):
     """
-    Upgraded with y2mate.yt Proof-of-Work (PoW) Engine & Savenow.to Multi-Server Network.
-    Accurate Real YouTube Duration & File Size Calculation, Direct Chunked DDLs,
-    and Clean Non-Duplicate Format Responses.
+    Instantly extracts YouTube metadata and sets up clean quality options
+    powered by y2mate.yt PoW & Savenow.to network.
     """
     m = re.search(r"(?:v=|\/|youtu\.be\/|embed\/|shorts\/)([a-zA-Z0-9_-]{11})", url)
     video_id = m.group(1) if m else ""
@@ -328,42 +423,8 @@ async def resolve_youtube(url: str):
     duration_seconds = 0
     quality_bytes = {}
 
-    # Check if local Express API server is active on port 3000
-    local_api = f"http://127.0.0.1:3000/api/youtube?url={quote(standard_url)}&all=true"
     async with aiohttp.ClientSession(headers={"User-Agent": UA}) as session:
-        try:
-            async with session.get(local_api, timeout=aiohttp.ClientTimeout(total=20)) as resp:
-                if resp.status == 200:
-                    api_json = await resp.json()
-                    if api_json.get("success") and api_json.get("formats"):
-                        download_links = []
-                        for f in api_json["formats"]:
-                            f_id = str(f.get("format") or "")
-                            f_info = FORMAT_MAP.get(f_id, {"ext": "mp4", "type": "video"})
-                            download_links.append({
-                                "format": f_id,
-                                "label": f.get("label") or f"{f_id}p",
-                                "type": f_info["type"],
-                                "ext": f_info["ext"],
-                                "size": f.get("size") or "Fast DDL",
-                                "size_bytes": f.get("bytes") or 0,
-                                "downloadUrl": f.get("directUrl") or f.get("downloadUrl")
-                            })
-
-                        best_audio = next((l["downloadUrl"] for l in download_links if l["type"] == "audio"), None)
-                        return {
-                            "provider": "YouTube (y2mate.yt & Savenow PoW Engine)",
-                            "title": api_json.get("title") or title,
-                            "author": api_json.get("authorName") or author,
-                            "thumbnail": api_json.get("thumbnailUrl") or thumbnail,
-                            "download_links": download_links,
-                            "best_audio_url": best_audio,
-                            "video_id": video_id
-                        }
-        except Exception:
-            pass
-
-        # 1. Fetch title and author from oEmbed
+        # 1. Fetch title and author from oEmbed (instant response)
         try:
             oembed_url = f"https://www.youtube.com/oembed?url={quote(standard_url, safe='')}&format=json"
             async with session.get(oembed_url, timeout=aiohttp.ClientTimeout(total=6)) as oresp:
@@ -396,49 +457,20 @@ async def resolve_youtube(url: str):
             for k, f_info in FORMAT_MAP.items():
                 quality_bytes[k] = round((f_info["bitrate"] * duration_seconds) / 8)
 
-        # 3. Solve PoW Token
-        token = await _get_valid_pow_token(session)
-
-        # 4. Process formats in parallel using Savenow Engine
-        tasks = [
-            _process_savenow_format(session, standard_url, fmt_id, token, quality_bytes)
-            for fmt_id in DEFAULT_TARGET_FORMATS
-        ]
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-
+        # 3. Build format cards instantly
         download_links = []
-        for r in results:
-            if isinstance(r, dict) and r.get("downloadUrl"):
-                download_links.append(r)
-
-        if not download_links:
-            # Direct proxy fallback link
+        for fmt_id in DEFAULT_TARGET_FORMATS:
+            f_info = FORMAT_MAP.get(fmt_id, {"ext": "mp4", "type": "video", "quality": f"{fmt_id}p", "label": fmt_id})
+            calc_b = quality_bytes.get(fmt_id) or 0
             download_links.append({
-                "format": "1080",
-                "label": "🎬 MP4 1080p FHD (Video + Audio)",
-                "type": "video",
-                "ext": "mp4",
-                "size": format_size(quality_bytes.get("1080")) if quality_bytes.get("1080") else "1080p MP4",
-                "size_bytes": quality_bytes.get("1080", 0),
-                "downloadUrl": f"http://127.0.0.1:3000/api/youtube?url={quote(standard_url)}&format=1080&dl=true"
-            })
-            download_links.append({
-                "format": "720",
-                "label": "🎬 MP4 720p HD (Video + Audio)",
-                "type": "video",
-                "ext": "mp4",
-                "size": format_size(quality_bytes.get("720")) if quality_bytes.get("720") else "720p MP4",
-                "size_bytes": quality_bytes.get("720", 0),
-                "downloadUrl": f"http://127.0.0.1:3000/api/youtube?url={quote(standard_url)}&format=720&dl=true"
-            })
-            download_links.append({
-                "format": "mp3",
-                "label": "🎵 MP3 Audio (320kbps)",
-                "type": "audio",
-                "ext": "mp3",
-                "size": format_size(quality_bytes.get("mp3")) if quality_bytes.get("mp3") else "320kbps MP3",
-                "size_bytes": quality_bytes.get("mp3", 0),
-                "downloadUrl": f"http://127.0.0.1:3000/api/youtube?url={quote(standard_url)}&format=mp3&dl=true"
+                "format": fmt_id,
+                "label": f_info["label"],
+                "type": f_info["type"],
+                "ext": f_info["ext"],
+                "size": format_size(calc_b) if calc_b else "Fast DDL",
+                "size_bytes": calc_b,
+                "downloadUrl": "",
+                "needs_resolve": True
             })
 
         best_audio = next((l["downloadUrl"] for l in download_links if l["type"] == "audio"), None)
